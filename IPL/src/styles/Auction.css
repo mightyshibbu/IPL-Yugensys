@@ -1,0 +1,110 @@
+.auction-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .player-card {
+    border: 1px solid gray;
+    padding: 10px;
+    width: 250px;
+    background-color: #f2f2f2;
+  }
+  
+  .player-card img {
+    width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+  }
+  
+  .player-info {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  
+  .player-info div {
+    margin-bottom: 5px;
+  }
+  
+  .auction-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  
+  .bid-info, .bid-timer {
+    font-size: 16px;
+    padding: 10px;
+    background-color: #e6e6e6;
+    border-radius: 5px;
+  }
+  
+  .bid-info {
+    flex-grow: 1;
+    margin-right: 10px;
+  }
+  
+  .owners-container {
+    flex-grow: 1;
+    margin-left: 20px;
+  }
+  
+  .owner-card {
+    border: 1px solid gray;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+  }
+  
+  .owner-card div {
+    margin-bottom: 10px;
+  }
+  
+  .available-bids {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .available-bids span {
+    margin-right: 10px;
+    margin-bottom: 10px;
+    padding: 5px;
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+  
+  .available-bids span:hover {
+    background-color: #e6e6e6;
+  }
+  
+  .available-bids span.red {
+    color: red;
+    text-decoration: line-through;
+    cursor: not-allowed;
+  }
+  
+  .purchased-players {
+    font-size: 14px;
+    margin-top: 5px;
+  }
+  
+  button {
+    padding: 8px 16px;
+    background-color: gray;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: not-allowed;
+  }
+  
+  button.active {
+    background-color: green;
+    cursor: pointer;
+  }
+  
+  button:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+  }
+  

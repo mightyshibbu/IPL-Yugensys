@@ -1,0 +1,43 @@
+.homepage-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f5f5f5;
+  }
+  
+  .auction-header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+  
+  .auction-header h1 {
+    font-size: 2.5rem;
+    color: #333;
+  }
+  
+  .auction-header h2 {
+    font-size: 1.2rem;
+    color: #666;
+  }
+  
+  .button-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  
+  .auction-btn {
+    padding: 15px 30px;
+    background-color: #d3d3d3;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  
+  .auction-btn:hover {
+    background-color: #c0c0c0;
+  }
+  

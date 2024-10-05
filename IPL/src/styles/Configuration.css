@@ -1,0 +1,49 @@
+.configure-player-list {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .title {
+    font-size: 24px;
+    color: red;
+    margin-bottom: 20px;
+  }
+  
+  .pool-size-container {
+    margin-bottom: 20px;
+  }
+  
+  .pool-size-input {
+    width: 50px;
+    padding: 5px;
+    margin-right: 10px;
+  }
+  
+  .ok-btn {
+    padding: 5px 10px;
+    background-color: gray;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .player-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .player-table th, .player-table td {
+    border: 1px solid black;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .edit-btn {
+    padding: 5px 10px;
+    background-color: gray;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
