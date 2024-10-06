@@ -7,6 +7,8 @@ const Auction = ({ players, poolSize }) => {
     players[currentPlayerIndex]?.minimumBid || 0
   ); // Fallback to 0 if player[0] is undefined
   const [highestBidder, setHighestBidder] = useState(null);
+  const [unbiddedPlayersQueue, setUnbiddedPlayersQueue] = useState([]); // Queue for unbidded players
+ 
   const [timer, setTimer] = useState(10);
   const [owners, setOwners] = useState([
     { id: 1, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
@@ -60,68 +62,6 @@ const Auction = ({ players, poolSize }) => {
     setHighestBidder(null); // Clear the highest bidder
     setTimer(10); // Reset timer
   };
-
-  // const handleBidClick = useCallback(
-  //   (ownerId, bidValue) => {
-  //     if (!isStopped) {
-  //       console.log("aaaaa");
-  
-  //       // Ensure owners_with_max_bid array exists (initialize if undefined)
-  //       let owners_with_max_bid = []; // Initialize an empty array to store owners with max bid
-  
-  //       // Find the owner making the bid
-  //       const owner = owners.find((o) => o.id === ownerId);
-  //       console.log("Bidder Owner", owner.id);
-  
-  //       // Ensure the owner has enough units, bid is higher than the current highest, and they are not the highest bidder
-  //       if (
-  //         owner.unitsLeft >= bidValue &&
-  //         bidValue > highestBid &&
-  //         owner !== highestBidder
-  //       ) {
-  //         // Get the current player's slab
-  //         const cur_slab = currentPlayer.PSlab;
-  
-  //         // Get the maximum bid allowed for the current slab (make sure slabDetails[cur_slab] exists)
-  //         const cur_maxBid = slabs[cur_slab].maxBid; // Default to 0 if undefined
-  //         console.log("cur_slab:",cur_slab)
-  //         console.log("cur_maxBid:",cur_maxBid)
-  //         // If the bid matches the max bid for the current slab, handle random owner selection
-  //         if (bidValue === cur_maxBid) {
-  //           owners_with_max_bid.push(owner); // Add current owner to the max bid array
-  //           console.log("new  owner with max bid", owner);
-
-  //           // Function to select one random owner from the array of owners with the max bid
-  //           const random_owner =
-  //             owners_with_max_bid[
-  //               Math.floor(Math.random() * owners_with_max_bid.length)
-  //             ];
-  //             console.log("This time Random Owner", random_owner.id);
-  //           // Set highest bid and highest bidder to the random owner
-  //           setHighestBid(bidValue); // Update highestBid
-  //           setHighestBidder(random_owner); // Update highest bidder with random owner
-  //         } else {
-  //           // If the bid doesn't reach max bid, just update normally
-  //           setHighestBid(bidValue); // Update highest bid to current bidValue
-  //           setHighestBidder(owner); // Update highest bidder to current owner
-  //         }
-  
-  //         console.log("bidValue & highest bid:", bidValue, highestBid);
-  //         setTimer(10); // Reset the timer when a bid is placed
-  
-  //         // Update the owner's bid value without deducting units from them
-  //         const updatedOwners = owners.map((o) => {
-  //           if (o.id === ownerId) {
-  //             return { ...o, currentBid: bidValue }; // Store the bid value in the owner object
-  //           }
-  //           return o;
-  //         });
-  //         setOwners(updatedOwners); // Set the updated owners state
-  //       }
-  //     }
-  //   },
-  //   [highestBid, isStopped, owners, setHighestBidder, setTimer, setOwners]
-  // );
   
 const handleBidClick = useCallback(
   (ownerId, bidValue) => {
@@ -187,85 +127,6 @@ const handleBidClick = useCallback(
   },
   [highestBid, isStopped, owners, setHighestBidder, setTimer, setOwners]
 );
-
-  // const makeBid = (ownerId, isManualBid) => {
-  //   if (!isStopped) {
-  //     const owner = owners.find((o) => o.id === ownerId);
-  //     const slabPlayers = owner.slabPlayers[currentPlayer.PSlab] || [];
-  
-  //     if (slabPlayers.length < 2) {
-  //       // Add player to the owner's purchased list
-  //       slabPlayers.push(currentPlayer.PName);
-  //       owner.purchasedPlayers.push(currentPlayer.PName);
-  
-  //       // Update owners and ensure slab assignment is done properly
-  //       setOwners(
-  //         owners.map((o) => {
-  //           if (o.id === ownerId) {
-  //             return {
-  //               ...o,
-  //               slabPlayers: {
-  //                 ...o.slabPlayers,
-  //                 [currentPlayer.PSlab]: slabPlayers,
-  //               },
-  //             };
-  //           }
-  //           return o;
-  //         })
-  //       );
-  
-  //       // Deduct units only for manual bids
-  //       if (isManualBid) {
-  //         setOwners((prevOwners) =>
-  //           prevOwners.map((o) => {
-  //             if (o.id === ownerId) {
-  //               return {
-  //                 ...o,
-  //                 unitsLeft: o.unitsLeft - highestBid, // Deduct only when it's a manual bid
-  //               };
-  //             }
-  //             return o;
-  //           })
-  //         );
-  //       }
-  //     } else {
-  //       // If the owner already has 2 players in this slab, auto-assign to the next owner
-  //       const nextOwner = owners.find(
-  //         (o) => o.id !== ownerId && (o.slabPlayers[currentPlayer.PSlab] || []).length < 2
-  //       );
-  
-  //       if (nextOwner) {
-  //         return makeBid(nextOwner.id, false); // Auto-assign without units deduction
-  //       } else {
-  //         // If all owners have 2 players in the same slab, assign to the first owner at base price
-  //         const firstOwner = owners[0];
-  //         firstOwner.purchasedPlayers.push(currentPlayer.PName);
-  
-  //         setOwners(
-  //           owners.map((o) => {
-  //             if (o.id === firstOwner.id) {
-  //               return {
-  //                 ...o,
-  //                 slabPlayers: {
-  //                   ...o.slabPlayers,
-  //                   [currentPlayer.PSlab]: [currentPlayer.PName],
-  //                 },
-  //               };
-  //             }
-  //             return o;
-  //           })
-  //         );
-  //       }
-  //     }
-  
-  //     // Move to the next player in the pool or display results if finished
-  //     if (currentPlayerIndex < poolSize - 1) {
-  //       setCurrentPlayerIndex((prevIndex) => (prevIndex + 1) % players.length);
-  //     } else {
-  //       displayResult();
-  //     }
-  //   }
-  // };
   const makeBid = (ownerId, isManualBid) => {
   if (!isStopped) {
     const owner = owners.find((o) => o.id === ownerId);
@@ -349,16 +210,56 @@ const handleBidClick = useCallback(
   const displayResult=()=>{
     console.log("Auction completed!")
   }
+  // const assignPlayerToHighestBidder = () => {
+  //   if (highestBidder) {
+  //     // Update the owners array with the highest bidder's player assignment
+  //     const updatedOwners = owners.map((o) => {
+  //       if (o.id === highestBidder.id) {
+  //         const obj = {
+  //           ...o,
+  //           // Deduct the highest bid from the bidder's units
+  //           unitsLeft: o.unitsLeft - highestBid,
+  //           // Add the player to the slab they belong to
+  //           slabPlayers: {
+  //             ...o.slabPlayers,
+  //             [currentPlayer.PSlab]: [
+  //               ...(o.slabPlayers[currentPlayer.PSlab] || []),
+  //               currentPlayer.PName,
+  //             ],
+  //           },
+  //         };
+  //         return obj;
+  //       }
+  //       return o;
+  //     });
+  
+  //     setOwners(updatedOwners);
+  //     console.log("Updated owners:", updatedOwners);
+  
+  //     // Call makeBid to continue the auction and handle the next player
+  //     return makeBid(highestBidder.id, true); // Passing true to indicate a manual bid with units deduction
+  //   } else {
+  //     // Add to queue if there's no highest bidder
+  //     const queue = [...owners.filter((o) => o.unitsLeft > 0)];
+  //     if (queue.length > 0) {
+  //       return makeBid(queue[0].id, false); // Auto-assign without deducting units
+  //     } else {
+  //       alert("Auction completed!");
+  //       setIsStarted(false);
+  //     }
+  //   }
+  
+  //   resetAuction();
+  // };
+  
   const assignPlayerToHighestBidder = () => {
     if (highestBidder) {
-      // Update the owners array with the highest bidder's player assignment
+      // Handle case where there is a valid highest bidder
       const updatedOwners = owners.map((o) => {
         if (o.id === highestBidder.id) {
-          const obj = {
+          return {
             ...o,
-            // Deduct the highest bid from the bidder's units
             unitsLeft: o.unitsLeft - highestBid,
-            // Add the player to the slab they belong to
             slabPlayers: {
               ...o.slabPlayers,
               [currentPlayer.PSlab]: [
@@ -367,30 +268,31 @@ const handleBidClick = useCallback(
               ],
             },
           };
-          return obj;
         }
         return o;
       });
-  
       setOwners(updatedOwners);
-      console.log("Updated owners:", updatedOwners);
-  
-      // Call makeBid to continue the auction and handle the next player
-      return makeBid(highestBidder.id, true); // Passing true to indicate a manual bid with units deduction
+      makeBid(highestBidder.id, true); // Manual bid
     } else {
-      // Add to queue if there's no highest bidder
-      const queue = [...owners.filter((o) => o.unitsLeft > 0)];
-      if (queue.length > 0) {
-        return makeBid(queue[0].id, false); // Auto-assign without deducting units
-      } else {
-        alert("Auction completed!");
-        setIsStarted(false);
-      }
+      // No highest bidder, add player index to queue
+      setUnbiddedPlayersQueue((prevQueue) => [...prevQueue, currentPlayerIndex]);
     }
-  
+
+    // Move to next player in pool or revisit queue if pool size is reached
+    if (currentPlayerIndex < poolSize - 1) {
+      setCurrentPlayerIndex((prevIndex) => prevIndex + 1);
+    } else if (unbiddedPlayersQueue.length > 0) {
+      // Restart the auction with players in the queue
+      setCurrentPlayerIndex(unbiddedPlayersQueue.shift());
+      setUnbiddedPlayersQueue([...unbiddedPlayersQueue]);
+    } else {
+      setTimer(0);
+      setIsStarted(false);
+      displayResult();
+    }
+
     resetAuction();
   };
-  
   const handleStart = () => {
     setIsStarted(true);
     setIsStopped(false);
@@ -445,6 +347,7 @@ const handleBidClick = useCallback(
         >
           <div>Current Bid: {highestBid}</div>
           <div>Highest Bidder:{highestBidder ? highestBidder.id : "None"}</div>
+          <div>Pool Size: {poolSize}</div>
           <div>Timer (seconds): {timer}</div>
         </div>
 
