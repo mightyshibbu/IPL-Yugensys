@@ -60,7 +60,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<HomePage poolSize={poolSize}/>} />
         <Route path="/config" element={<Configuration players={players} poolSize={poolSize} setPoolSize={setPoolSize} />} />
         <Route path="/auction" element={<Auction players={players} poolSize={poolSize} />} />
         
