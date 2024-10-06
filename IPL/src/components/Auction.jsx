@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
-
 const Auction = ({ players, poolSize }) => {
   console.log("auction render");
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
-  const [highestBid, setHighestBid] = useState(players[currentPlayerIndex]?.minimumBid || 0); // Fallback to 0 if player[0] is undefined
+  const [highestBid, setHighestBid] = useState(
+    players[currentPlayerIndex]?.minimumBid || 0
+  ); // Fallback to 0 if player[0] is undefined
   const [highestBidder, setHighestBidder] = useState(null);
   const [timer, setTimer] = useState(10);
   const [owners, setOwners] = useState([
@@ -31,15 +32,13 @@ const Auction = ({ players, poolSize }) => {
     console.log("Highest Bid: ", highestBid);
     // Get the slab details for the current player
     console.log("Slab Details: ", slabDetails);
-  }, [])
+  }, []);
   const currentPlayer = players[currentPlayerIndex];
 
   const slabDetails = slabs[currentPlayer.PSlab];
 
   // Reset the timer and start countdown when bid is updated
   useEffect(() => {
-    console.log("sssssss");
-    
     if (isStarted && !isStopped) {
       if (timer === 0) {
         // Proceed to the next player when the timer runs out
@@ -57,80 +56,83 @@ const Auction = ({ players, poolSize }) => {
     setHighestBid(currentPlayer.minimumBid || slabDetails.basePrice); // Initialize highestBid
   }, [currentPlayerIndex]);
 
-  const assignPlayerToHighestBidder = () => {
-    if (highestBidder) {
-      makeBid(highestBidder.id); // Assign player to highest bidder
-    } else {
-      if (currentPlayerIndex < poolSize - 1) {
-        setCurrentPlayerIndex((prevIndex) => (prevIndex + 1) % players.length); // Move to the next player
-      } else {
-        alert("Auction completed!");
-        setIsStarted(false); // Stop the timer
-      }
-    }
-    resetAuction();
-  };
-
   const resetAuction = () => {
     setHighestBid(currentPlayer.minimumBid || slabDetails.basePrice); // Reset to current player's minimum bid
     setHighestBidder(null); // Clear the highest bidder
     setTimer(10); // Reset timer
   };
-  // const handleBidClick = useCallback((ownerId, bidValue) => {
-  //   if (!isStopped) {
-  //     console.log("aaaaa");
-      
-  //     const owner = owners.find((o) => o.id === ownerId);
-  //     console.log("Bidder Owner", owner.id)
-  //     if (owner.unitsLeft >= bidValue && bidValue > highestBid && owner != highestBidder) {
-  //       setHighestBid(bidValue); // Update highestBid using the previous state
-  //       setHighestBidder(owner);
-  //       console.log("bidValue & highest bid:",bidValue,highestBid)
-  //       setTimer(10); // Reset the timer when a bid is placed
   
-  //       const updatedOwners = owners.map((o) => {
-  //         if (o.id === ownerId) {
-  //           return { ...o, unitsLeft: o.unitsLeft - bidValue };
-  //         }
-  //         return o;
-  //       });
-  //       setOwners(updatedOwners);
-  //     }
-  //   }
-  // }, [highestBid, isStopped, owners, setHighestBidder, setTimer, setOwners]);
-
-
-
-  const handleBidClick = useCallback((ownerId, bidValue) => {
-    if (!isStopped) {
-      console.log("aaaaa");
-      
-      const owner = owners.find((o) => o.id === ownerId);
-      console.log("Bidder Owner", owner.id)
-      if (owner.unitsLeft >= bidValue && bidValue > highestBid && owner != highestBidder) {
-        setHighestBid(bidValue); // Update highestBid using the previous state
-        setHighestBidder(owner);
-        console.log("bidValue & highest bid:",bidValue,highestBid)
-        setTimer(10); // Reset the timer when a bid is placed
+  const handleBidClick = useCallback(
+    (ownerId, bidValue) => {
+      if (!isStopped) {
+        console.log("aaaaa");
   
-        const updatedOwners = owners.map((o) => {
-          if (o.id === ownerId) {
-            return { ...o, unitsLeft: o.unitsLeft - bidValue };
-          }
-          return o;
-        });
-        setOwners(updatedOwners);
+        const owner = owners.find((o) => o.id === ownerId);
+        console.log("Bidder Owner", owner.id);
+        if (
+          owner.unitsLeft >= bidValue &&
+          bidValue > highestBid &&
+          owner != highestBidder
+        ) {
+          setHighestBid(bidValue); // Update highestBid using the previous state
+          setHighestBidder(owner);
+          console.log("bidValue & highest bid:", bidValue, highestBid);
+          setTimer(10); // Reset the timer when a bid is placed
+          
+          // Don't deduct units from wallet here
+          // Instead, store the bid value in the owner object
+          const updatedOwners = owners.map((o) => {
+            if (o.id === ownerId) {
+              return { ...o, currentBid: bidValue };
+            }
+            return o;
+          });
+          setOwners(updatedOwners);
+        }
+      }
+    },
+    [highestBid, isStopped, owners, setHighestBidder, setTimer, setOwners]
+  );
+  
+  const assignPlayerToHighestBidder = () => {
+    if (highestBidder) {
+      const updatedOwners = owners.map((o) => {
+        if (o.id === highestBidder.id) {
+          const obj= {
+            ...o,
+            unitsLeft: o.unitsLeft - highestBid,
+            slabPlayers: {
+              ...o.slabPlayers,
+              [currentPlayer.PSlab]: [...(o.slabPlayers[currentPlayer.PSlab] || []), currentPlayer.PName],
+            },
+          };
+          return obj;
+        }
+        return o;
+      });
+      setOwners(updatedOwners);
+      makeBid(highestBidder .id);
+      console.log("New onwers:",owners)
+    } else {
+      // Add to queue
+      const queue = [...(owners.filter((o) => o.unitsLeft > 0))];
+      if (queue.length > 0) {
+        makeBid(queue[0].id);
+      } else {
+        alert("Auction completed!");
+        setIsStarted(false);
       }
     }
-  }, [highestBid, isStopped, owners, setHighestBidder, setTimer, setOwners]);
-
+    resetAuction();
+  };
+  
   const makeBid = (ownerId) => {
     if (!isStopped) {
       const owner = owners.find((o) => o.id === ownerId);
       const slabPlayers = owner.slabPlayers[currentPlayer.PSlab] || [];
       if (slabPlayers.length < 2) {
-        slabPlayers.push(currentPlayer.PID);
-        owner.purchasedPlayers.push(currentPlayer.PID);
+        slabPlayers.push(currentPlayer.PName);
+        owner.purchasedPlayers.push(currentPlayer.PName);
         setOwners(
           owners.map((o) => {
             if (o.id === ownerId) {
@@ -147,15 +149,13 @@ const Auction = ({ players, poolSize }) => {
         );
       } else {
         // Auto-assign to the next owner if the current owner has already purchased two players from the same slab
-        const nextOwner = owners.find(
-          (o) => o.id !== ownerId && !o.slabPlayers[currentPlayer.PSlab]
-        );
+        const nextOwner = owners.find((o) => o.id !== ownerId && !o.slabPlayers[currentPlayer.PSlab]);
         if (nextOwner) {
           makeBid(nextOwner.id);
         } else {
           // If all owners have already purchased two players from the same slab, assign the player to the first owner at the base price
           const firstOwner = owners[0];
-          firstOwner.purchasedPlayers.push(currentPlayer.PID);
+          firstOwner.purchasedPlayers.push(currentPlayer.PName);
           setOwners(
             owners.map((o) => {
               if (o.id === firstOwner.id) {
@@ -163,7 +163,7 @@ const Auction = ({ players, poolSize }) => {
                   ...o,
                   slabPlayers: {
                     ...o.slabPlayers,
-                    [currentPlayer.PSlab]: [currentPlayer.PID],
+                    [currentPlayer.PSlab]: [currentPlayer.PName],
                   },
                 };
               }
@@ -174,12 +174,12 @@ const Auction = ({ players, poolSize }) => {
       }
     }
     if (currentPlayerIndex < poolSize - 1) {
-      setCurrentPlayerIndex((prevIndex) => (prevIndex + 1) % players.length); // Move to the next player
+      setCurrentPlayerIndex((prevIndex) => (prevIndex + 1) % players.length);
     } else {
       displayResult();
     }
   };
-
+  
   const handleStart = () => {
     setIsStarted(true);
     setIsStopped(false);
@@ -250,32 +250,46 @@ const Auction = ({ players, poolSize }) => {
             <div>Units Left: {owner.unitsLeft}</div>
             <div>
               Available Bids:
-              {isStarted && [...Array(Math.floor((slabDetails.maxBid - slabDetails.basePrice) / 50) + 1)]
-                .map((_, i) => slabDetails.basePrice + i * 50)
-                .filter(
-                  (bidValue) => bidValue >= highestBid || bidValue < owner.unitsLeft
-                )
-                .map((bidValue) => (
-                  <span
-                    key={bidValue}
-                    style={{
-                      marginRight: "5px",
-                      color:highestBid > bidValue ? "red" : "black",
-                      textDecoration:highestBid > bidValue ? "line-through" : "none",
-                      cursor: bidValue === slabDetails.maxBid
-                        ? owner.unitsLeft >= highestBid
-                          ? "pointer"
-                          : "not-allowed"
-                        : owner.unitsLeft > highestBid
-                        ? "pointer"
-                        : "not-allowed",
-                    }}
-                    onClick={() =>handleBidClick(owner.id, bidValue)
-                    }
-                  >
-                    {bidValue}
-                  </span>
-                ))}
+              {isStarted &&
+                [
+                  ...Array(
+                    Math.floor(
+                      (slabDetails.maxBid - slabDetails.basePrice) / 50
+                    ) + 1
+                  ),
+                ]
+                  .map((_, i) =>slabDetails.basePrice + i * 50)
+                  .filter(
+                    (bidValue) =>
+                      bidValue >= highestBid || bidValue < owner.unitsLeft
+                  )
+                  .map((bidValue) => (
+                    <span
+                      key={bidValue}
+                      style={{
+                        marginRight: "5px",
+                        color:
+                          highestBid > bidValue || owner.unitsLeft < bidValue
+                            ? "red"
+                            : "black",
+                        textDecoration:
+                          highestBid > bidValue || owner.unitsLeft < bidValue
+                            ? "line-through"
+                            : "none",
+                        cursor:
+                          bidValue === slabDetails.maxBid
+                            ? owner.unitsLeft >= highestBid
+                              ? "pointer"
+                              : "not-allowed"
+                            : owner.unitsLeft > highestBid
+                            ? "pointer"
+                            : "not-allowed",
+                      }}
+                      onClick={() => handleBidClick(owner.id, bidValue)}
+                    >
+                      {bidValue}
+                    </span>
+                  ))}
             </div>
             <div>
               Purchased Players: {owner.purchasedPlayers.join(", ") || "None"}
