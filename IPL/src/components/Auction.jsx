@@ -128,15 +128,16 @@ const Auction = ({ players, poolSize, configTime }) => {
     },
     [highestBid, isStopped, owners, setHighestBidder, setTimer, setOwners]
   );
+
   const makeBid = (ownerId) => {
     if (!isStopped) {
       const owner = owners.find((o) => o.id === ownerId);
       const slabPlayers = owner.slabPlayers[currentPlayer.PSlab] || [];
-
+  
       if (slabPlayers.length < slabMaxSize[currentPlayer.PSlab]) {
         slabPlayers.push(currentPlayer.PName);
         owner.purchasedPlayers.push(currentPlayer.PName);
-
+  
         setOwners(
           owners.map((o) => {
             if (o.id === ownerId) {
@@ -152,15 +153,16 @@ const Auction = ({ players, poolSize, configTime }) => {
             return o;
           })
         );
-      } else {
+        setRepeat(false); // Reset repeat when valid purchase
+      } 
         alert(
           `Owner ${owner.id} cannot purchase more players from ${currentPlayer.PSlab}`
         );
-        setRepeat(true);
-      }
-      //movenext
+        // Set repeat to true when alert is triggered
+      
     }
   };
+  
   const displayResult = () => {
     console.log("Auction completed!");
     alert("Auction completed!");
@@ -202,7 +204,7 @@ const Auction = ({ players, poolSize, configTime }) => {
     console.log("CURRENT LIST OF OWNERS:", owners);
     if (highestBidder) {
       makeBid(highestBidder.id);
-      if (!repeat) {
+       // Check the repeat flag before removing the player
         setUnbiddedPlayersQueue((prevQueue) =>
           prevQueue.filter((player) => player.PID !== currentPlayer.PID)
         );
@@ -211,9 +213,7 @@ const Auction = ({ players, poolSize, configTime }) => {
           updatedPlayers[currentPlayerIndex] = 0;
           return updatedPlayers;
         });
-        console.log("My PlayersList: ", playersList);
-      }
-      console.log("REPEAT IS TRUE")
+      
     } else {
       console.log(
         "INSIDE else of assignPlayerToHighestBidder(UNBIDDED), for player at index:",
@@ -221,15 +221,13 @@ const Auction = ({ players, poolSize, configTime }) => {
       );
       console.log("for player:", currentPlayer);
       console.log("Unbidded Players: ", unbiddedPlayersQueue);
-
+  
       console.log("My PlayersList: ", playersList);
     }
-    if (!repeat) {
       moveToNextNonZeroPlayer();
       resetAuction();
-    }
+    
     setRepeat(false);
-    resetAuction();
   };
   const handleStart = () => {
     setIsStarted(true);
@@ -332,6 +330,7 @@ const Auction = ({ players, poolSize, configTime }) => {
         <button onClick={handleStop}>Stop</button>
         <button onClick={handleDiscard}>Discard</button>
         <button onClick={resetAuction}>Reset this bid</button>
+        <button onClick={assignPlayerToHighestBidder}>Skip time to Zero</button>
       </div>
     </div>
   );

@@ -29,12 +29,14 @@ const HomePage = ({poolSize,configTime}) => {
         <h2>@Yugensys</h2>
       </header>
       <div className="button-container">
-        <label>Pool Size: {poolSize}</label>
-        <label>Bid Time: {configTime}</label>
         <button className="auction-btn" onClick={handleConfig}>Configure</button>
         <button className="auction-btn" onClick={handleBeginAuction}>Begin Auction</button>
-        <button className="auction-btn" onClick={handleViewPrevious}>View Previous Auctions</button>
+        {/* <button className="auction-btn" onClick={handleViewPrevious}>View Previous Auctions</button> */}
       </div>
+      <div className="button-container">
+        <label className='auction-btn'>Pool Size: {poolSize}</label>
+        <label className='auction-btn'>Bid Time: {configTime}</label>
+        </div>
     </div>
   );
 };
