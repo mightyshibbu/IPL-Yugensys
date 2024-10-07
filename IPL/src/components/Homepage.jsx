@@ -2,7 +2,7 @@ import React from 'react';
 import '../styles/Homepage.css'; // Assuming you will style this separately
 import { useNavigate } from 'react-router-dom';
 
-const HomePage = ({poolSize}) => {
+const HomePage = ({poolSize,configTime}) => {
   const navigate = useNavigate();
 
   const handleConfig = () => {
@@ -30,6 +30,7 @@ const HomePage = ({poolSize}) => {
       </header>
       <div className="button-container">
         <label>Pool Size: {poolSize}</label>
+        <label>Bid Time: {configTime}</label>
         <button className="auction-btn" onClick={handleConfig}>Configure</button>
         <button className="auction-btn" onClick={handleBeginAuction}>Begin Auction</button>
         <button className="auction-btn" onClick={handleViewPrevious}>View Previous Auctions</button>

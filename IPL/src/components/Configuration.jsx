@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import '../styles/Configuration.css'; // You can add styles here
 import { useNavigate } from 'react-router-dom';
 
-const Configuration = ({ players, poolSize, setPoolSize }) => {
+const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTime }) => {
   const navigate = useNavigate();
 
   const [error, setError] = useState(null);
@@ -14,6 +14,16 @@ const Configuration = ({ players, poolSize, setPoolSize }) => {
       setError(null); // Clear any previous error
     } else {
       setError('Please enter a valid pool size between 1 and ' + players.length);
+    }
+  };
+
+  const handleTimeChange = (event) => {
+    const newTime = Number(event.target.value);
+    if (newTime >= 3 && newTime <= 20) { // Add validation for bid time
+      setConfigTime(newTime);
+      setError(null); // Clear any previous error
+    } else {
+      setError('Please enter a valid bid time between 3 and 20 seconds.');
     }
   };
 
@@ -41,6 +51,19 @@ const Configuration = ({ players, poolSize, setPoolSize }) => {
           onChange={handlePoolSizeChange} // Correct event handling
           min="1"
           max={players.length} // Ensure the input respects the maximum pool size based on available players
+          className="pool-size-input"
+        />
+        {error && <div className="error-message">{error}</div>}
+        <button className="ok-btn" onClick={handleOk}>OK</button>
+      </div>
+      <div className="time-container">
+        <label>Set Bid Time (Default 10): </label>
+        <input
+          type="number"
+          value={configTime} // Use value instead of defaultValue to reflect state changes
+          onChange={handleTimeChange} // Added onChange handler here
+          min="3"
+          max="20" // Ensure the input respects the maximum bid time
           className="pool-size-input"
         />
         {error && <div className="error-message">{error}</div>}
