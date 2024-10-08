@@ -379,6 +379,7 @@ const Auction = ({ players, poolSize, configTime }) => {
   };
 
   return (
+    <> 
     <div className="auction-container">
       <div className="player-card">
         <div>Auction ID: A07</div>
@@ -460,14 +461,15 @@ const Auction = ({ players, poolSize, configTime }) => {
         ))}
       </div>
 
+    </div>
       <div className="control-buttons">
         <button onClick={handleStart}>Start</button>
         <button onClick={handleStop}>Stop</button>
         <button onClick={handleDiscard}>Discard</button>
-        <button onClick={resetAuction}>Reset this bid</button>
-        <button onClick={assignPlayerToHighestBidder}>Skip time to Zero</button>
+        <button onClick={resetAuction}>Reset bid</button>
+        <button onClick={assignPlayerToHighestBidder}>Skip time</button>
       </div>
-    </div>
+      </>
   );
 };
 
