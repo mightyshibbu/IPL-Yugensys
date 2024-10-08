@@ -1,46 +1,81 @@
-
+/* Main container styling */
 .auction-container {
   display: flex;
   justify-content: space-between;
   padding: 20px;
-  font-family: Arial, sans-serif;
-  background-color: #f9f9f9;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-family: 'Roboto', sans-serif;
+  background: linear-gradient(135deg, #2b5876, #4e4376); /* Same theme */
+  color: #ffffff;
   width: 97vw;
   height: 86vh;
   box-sizing: border-box; /* Ensures padding doesn't affect width and height */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Player card section */
 .player-card {
-  border: 1px solid #ccc;
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Light border for card */
   padding: 20px;
-  width: 300px;
-  background-color: #fff;
-  border-radius: 8px;
+  width: 320px; /* Adjusted width for better spacing */
+  background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent background */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow */
+  text-align: center;
 }
-button.auction-btn{
-  background-color: #0056b3;
-  color: whitesmoke;
-  margin-top:20px;
-}
-label.auction-btn{
-  background-color: #c2c2c2;
-  color: rgb(0, 0, 0);
-  margin-top:20px;
-}
+
 .player-card img {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
+  width: 240px; /* Fixed size for the player image */
+  height: 240px;
+  object-fit: cover;
+  border-radius: 12px;
   margin-bottom: 15px;
 }
 
+/* General text in player card */
 .player-card div {
   margin-bottom: 8px;
+  font-size: 14px;
+  color: #ffdf00; /* Yellow color for general text */
+}
+
+/* Make the slab special */
+.player-card .slab {
+  font-size: 24px;
+  color: #ffdf00; /* Yellow color for slab emphasis */
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  border: 2px solid #0046f6; /* Special border for slab */
+  padding: 10px;
+  border-radius: 8px;
+  background-color: rgba(255, 223, 0, 0.2); /* Light yellow background */
+}
+
+/* Larger text for important details */
+.player-card .player-name {
+  font-size: 18px;
+  color: #ffffff; /* White color for player name */
+  font-weight: 600;
+}
+
+.player-card .important-text {
   font-size: 16px;
-  color: #333;
+  color: #ffdf00; /* Yellow color for important text */
+  font-weight: bold;
+}
+
+/* Minimum and maximum bid styling */
+.player-card .bid-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.player-card .bid-info div {
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffff; /* Blue color for bid info */
 }
 
 /* Bid information section */
@@ -49,52 +84,50 @@ label.auction-btn{
   justify-content: space-between;
   margin-bottom: 20px;
   padding: 20px;
-  background-color: #fff;
+  background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent background */
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 .bid-info div {
   font-size: 18px;
-  color: #666;
+  color: #ffdf00; /* Yellow color for bid information */
 }
 
 /* Owners section */
 .owner-card {
-  border: 1px solid #ddd;
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Light border for owner card */
   padding: 15px;
   margin-bottom: 5px;
-  background-color: #cb0101;
+  background-color: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   margin-left: 15px;
+  min-width: max-content;
 }
 
 .owner-card div {
   margin-bottom: 8px;
-  
-  color: #333;
+  color: #ffdf00; /* Yellow color for owner card text */
   font-size: 16px;
 }
 
 .owner-card .bid-options {
-  
   margin-bottom: 10px;
 }
 
 .owner-card .bid-options span {
-  
   margin-right: 5px;
   padding: 5px 10px;
   border-radius: 5px;
-  background-color: #e9e9e9;
-  color: #333;
+  background-color: rgba(255, 255, 255, 0.2); /* Light background for options */
+  color: #ffdf00; /* Yellow color for options */
   cursor: pointer;
   transition: background-color 0.3s, color 0.3s;
 }
 
 .owner-card .bid-options span:hover {
-  background-color: #007bff;
-  color: #fff;
+  background-color: #007bff; /* Hover effect */
+  color: #ffffff; /* White text on hover */
 }
 
 .owner-card .bid-options span.line-through {
@@ -104,7 +137,7 @@ label.auction-btn{
 
 .owner-card .bid-options span.not-allowed {
   cursor: not-allowed;
-  background-color: #ccc;
+  background-color: #ccc; /* Gray for not-allowed */
 }
 
 /* Buttons */
@@ -112,31 +145,29 @@ button {
   padding: 10px 15px;
   border-radius: 5px;
   border: none;
-  background-color: #007bff;
-  color: white;
+  background-color: #007bff; /* Blue background */
+  color: #ffdf00; /* Yellow text */
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: #0056b3; /* Darker blue on hover */
 }
 
 button:disabled {
-  background-color: gray;
+  background-color: gray; /* Gray for disabled buttons */
   cursor: not-allowed;
 }
 
 /* Control buttons */
 .control-buttons {
   display: flex;
-  
   justify-content: center;
   align-items: center;
   gap: 30px; /* Adjust this as needed */
-  margin-top: 20px;
+  margin-top: 39px;
 }
-
 
 .control-buttons button {
   width: 120px;

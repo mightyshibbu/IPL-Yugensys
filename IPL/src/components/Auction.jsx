@@ -86,7 +86,6 @@ const Auction = ({ players, poolSize, configTime }) => {
     setHighestBid(currentPlayer.minimumBid || slabDetails.basePrice);
   }, [currentPlayerIndex]);
   useEffect(() => {
-    setHighestBid(currentPlayer.minimumBid || slabDetails.basePrice);
     // console.log("PlayersList:", playersList);
     // console.log("UnbiddedPlayerQUeue:", unbiddedPlayersQueue);
     // console.log("players:",players)
@@ -305,7 +304,7 @@ const Auction = ({ players, poolSize, configTime }) => {
   return (
     <> 
     <div className="auction-container">
-      <div className="player-card">
+      {/* <div className="player-card">
         <div>Auction ID: A07</div>
         <div>Player Card</div>
         <img src={getPlayerImage(currentPlayerIndex)} alt="Player"  style={{ width: "240px", height: "240px", objectFit: "cover" }}  />
@@ -318,7 +317,27 @@ const Auction = ({ players, poolSize, configTime }) => {
         <div>Height: {currentPlayer.PHeight}</div>
         <div>Weight: {currentPlayer.PWeight}</div>
         <div>Role: {currentPlayer.PRole}</div>
-      </div>
+      </div> */}
+<div className="player-card">
+  <div className="important-text">Auction ID: A07</div>
+  <div className="important-text">Player Card</div>
+  <img
+    src={getPlayerImage(currentPlayerIndex)}
+    alt="Player"
+    style={{ width: "240px", height: "240px", objectFit: "cover" }}
+  />
+  <div className="slab">Slab: {currentPlayer.PSlab}</div>
+  <div className="bid-info">
+    <div>Minimum Bid: {slabDetails.basePrice}</div>
+    <div>Maximum Bid: {slabDetails.maxBid}</div>
+  </div>
+  <div className="important-text">Player ID: {currentPlayer.PID}</div>
+  <div className="player-name">Name: {currentPlayer.PName}</div>
+  <div>Age: {currentPlayer.PAge}</div>
+  <div>Height: {currentPlayer.PHeight}</div>
+  <div>Weight: {currentPlayer.PWeight}</div>
+  <div>Role: {currentPlayer.PRole}</div>
+</div>
 
       <div style={{ flexGrow: 1, marginLeft: "20px" }}>
         <div className="bid-info">

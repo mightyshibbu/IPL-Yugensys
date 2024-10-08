@@ -1,4 +1,4 @@
-.configure-player-list {
+/* .configure-player-list {
     padding: 20px;
     text-align: center;
   }
@@ -46,4 +46,132 @@
     border: none;
     cursor: pointer;
   }
-  
+   */
+   /* Main container for the configuration component */
+.configure-player-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #2b5876, #4e4376); /* Matching background */
+  color: #ffffff;
+  font-family: 'Roboto', sans-serif;
+  padding: 20px;
+}
+
+/* Title styling */
+.title {
+  font-size: 2.5rem;
+  color: #ffdf00;
+  margin-bottom: 30px;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Pool size and bid time container */
+.pool-size-container, .time-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* Input fields styling */
+.pool-size-input {
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  width: 80px;
+  font-size: 1.2rem;
+  color: #2b5876;
+  background-color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* OK button styling */
+.ok-btn {
+  padding: 10px 20px;
+  font-size: 1rem;
+  background-color: #ffdf00;
+  color: #2b5876;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.ok-btn:hover {
+  background-color: #ffcf00;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Error message styling */
+.error-message {
+  color: #ff4d4d;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* Table styling */
+.player-table {
+  width: 90%;
+  margin-top: 30px;
+  border-collapse: collapse;
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.player-table th, .player-table td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #ffffff;
+}
+
+.player-table th {
+  background-color: #2b5876;
+  color: #ffdf00;
+  font-size: 1rem;
+}
+
+.player-table tr:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Edit button styling */
+.edit-btn {
+  padding: 5px 15px;
+  font-size: 0.9rem;
+  background-color: #ffdf00;
+  color: #2b5876;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.edit-btn:hover {
+  background-color: #ffcf00;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+  /* Responsive design for smaller screens */
+  .title {
+    font-size: 2rem;
+  }
+
+  .pool-size-container, .time-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .player-table {
+    width: 100%;
+  }
+}

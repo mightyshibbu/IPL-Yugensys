@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import {useNavigate} from 'react-router-dom'
 import '../styles/PreviousAuctions.css'; // Import the CSS file
 
 const PreviousAuctions = () => {
     const [auctions, setAuctions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const  navigate = useNavigate();
 
     useEffect(() => {
         const fetchAuctions = async () => {
@@ -26,13 +28,16 @@ const PreviousAuctions = () => {
         fetchAuctions();
     }, []);
     
-
+    const handleDiscard = () => {
+        navigate("/", { replace: true });
+      };
     if (loading) return <div className="loading">Loading...</div>;
     if (error) return <div className="error">Error: {error}</div>;
 
     return (
         <div className="container">
             <h2>Previous Auctions</h2>
+            <button onClick={handleDiscard}>Back</button>
             <table>
                 <thead>
                     <tr>
