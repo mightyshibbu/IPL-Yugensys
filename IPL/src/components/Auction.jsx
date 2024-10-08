@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Auction.css";
+import img1 from "../static/img1.jpg";
+import img2 from "../static/img2.jpg";
+import img3 from "../static/img3.jpg";
+import img4 from "../static/img4.jpg";
+import img5 from "../static/img5.jpg";
+import img6 from "../static/img6.jpg";
+import img9 from "../static/img9.jpg";
+import img8 from "../static/img8.jpg";
+import img7 from "../static/img7.jpg";
+const images = [img1, img2, img3, img4, img5, img6, img7, img8, img9];
 const Auction = ({ players, poolSize, configTime }) => {
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [playersList, setPlayersList] = useState(players.slice(0, poolSize));
@@ -11,7 +21,10 @@ const Auction = ({ players, poolSize, configTime }) => {
   const [unbiddedPlayersQueue, setUnbiddedPlayersQueue] = useState([
     ...playersList,
   ]);
-
+  const getPlayerImage = (playerIndex) => {
+    // Use modulo to repeat the images for players beyond the 6th
+    return images[playerIndex % images.length];
+  };
   const [timer, setTimer] = useState(configTime);
   const [owners, setOwners] = useState([
     { id: 1, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
@@ -74,8 +87,8 @@ const Auction = ({ players, poolSize, configTime }) => {
   }, [currentPlayerIndex]);
   useEffect(() => {
     setHighestBid(currentPlayer.minimumBid || slabDetails.basePrice);
-    console.log("PlayersList:", playersList);
-    console.log("UnbiddedPlayerQUeue:", unbiddedPlayersQueue);
+    // console.log("PlayersList:", playersList);
+    // console.log("UnbiddedPlayerQUeue:", unbiddedPlayersQueue);
     // console.log("players:",players)
   }, [timer]);
 
@@ -295,7 +308,7 @@ const Auction = ({ players, poolSize, configTime }) => {
       <div className="player-card">
         <div>Auction ID: A07</div>
         <div>Player Card</div>
-        <img src="<profile photo>" alt="Player" />
+        <img src={getPlayerImage(currentPlayerIndex)} alt="Player"  style={{ width: "240px", height: "240px", objectFit: "cover" }}  />
         <div>Slab: {currentPlayer.PSlab}</div>
         <div>Minimum Bid: {slabDetails.basePrice}</div>
         <div>Maximum Bid: {slabDetails.maxBid}</div>
