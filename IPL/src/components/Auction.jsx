@@ -178,39 +178,6 @@ const Auction = ({ players, poolSize, configTime }) => {
       }
     }
   };
-  // const makeBid = (ownerId) => {
-  //   if (!isStopped) {
-  //     const owner = owners.find((o) => o.id === ownerId);
-  //     const slabPlayers = owner.slabPlayers[currentPlayer.PSlab] || [];
-
-  //     if (slabPlayers.length < slabMaxSize[currentPlayer.PSlab]) {
-  //       slabPlayers.push(currentPlayer.PName);
-  //       owner.purchasedPlayers.push(currentPlayer.PName);
-
-  //       setOwners(
-  //         owners.map((o) => {
-  //           if (o.id === ownerId) {
-  //             return {
-  //               ...o,
-  //               unitsLeft: o.unitsLeft - highestBid,
-  //               slabPlayers: {
-  //                 ...o.slabPlayers,
-  //                 [currentPlayer.PSlab]: slabPlayers,
-  //               },
-  //             };
-  //           }
-  //           return o;
-  //         })
-  //       );
-  //       setRepeat(false); // Reset repeat when valid purchase
-  //     }
-  //     else {
-  //       alert(`Owner ${owner.id} cannot purchase more players from ${currentPlayer.PSlab}`);
-  //       setRepeat(true)
-  //     }
-  //     // Set repeat to true when alert is triggered
-  //   }
-  // };
 
   const saveAuctionData = async (auctionData) => {
     try {
@@ -253,24 +220,6 @@ const Auction = ({ players, poolSize, configTime }) => {
     }
   };
 
-  //   const displayResult = async () => {
-  //     console.log("Auction completed!");
-  //     alert("Auction completed!");
-
-  //     // Create auctionData object
-  //     const auctionData = {
-  //         owners: owners.map((owner) => ({
-  //             id: owner.id,
-  //             unitsLeft: owner.unitsLeft,
-  //             purchasedPlayers: owner.purchasedPlayers,
-  //             slabPlayers: owner.slabPlayers,
-  //         })),
-  //     };
-
-  //     // Call the saveAuctionData function to save auction data
-  //     await saveAuctionData(auctionData);
-  // };
-
   const moveToNextNonZeroPlayer = () => {
     console.log("MOVE TO NEXT NON ZERO PLAYER");
     if (
@@ -304,48 +253,10 @@ const Auction = ({ players, poolSize, configTime }) => {
     console.log("Updated UnbiddedPlayersQueue: ", unbiddedPlayersQueue);
   }, [playersList]);
 
-  // const assignPlayerToHighestBidder = () => {
-  //   console.log("CURRENT LIST OF OWNERS:", owners);
-  //   if (highestBidder) {
-  //     makeBid(highestBidder.id);
-  //     // Check the repeat flag before removing the player
-  //     setUnbiddedPlayersQueue((prevQueue) =>
-  //       prevQueue.filter((player) => player.PID !== currentPlayer.PID)
-  //     );
-  //     setPlayersList((prevPlayers) => {
-  //       const updatedPlayers = [...prevPlayers];
-  //       updatedPlayers[currentPlayerIndex] = 0;
-  //       return updatedPlayers;
-  //     });
-  //   } else {
-  //     console.log(
-  //       "INSIDE else of assignPlayerToHighestBidder(UNBIDDED), for player at index:",
-  //       currentPlayerIndex
-  //     );
-  //     console.log("for player:", currentPlayer);
-  //     console.log("Unbidded Players: ", unbiddedPlayersQueue);
-
-  //     console.log("My PlayersList: ", playersList);
-  //   }
-  //   moveToNextNonZeroPlayer();
-  //   resetAuction();
-  //   setRepeat(false);
-  // };
   const assignPlayerToHighestBidder = () => {
     console.log("CURRENT LIST OF OWNERS:", owners);
     if (highestBidder) {
       makeBid(highestBidder.id);
-      // if (!repeat) {
-      //   setUnbiddedPlayersQueue((prevQueue) =>
-      //     prevQueue.filter((player) => player.PID !== currentPlayer.PID)
-      //   );
-      //   setPlayersList((prevPlayers) => {
-      //     const updatedPlayers = [...prevPlayers];
-      //     updatedPlayers[currentPlayerIndex] = 0;
-      //     return updatedPlayers;
-      //   });
-      // }
-      // console.log("My PlayersList: ", playersList);
     } else {
       console.log("NO HIGHEST BIDDER", currentPlayerIndex);
       console.log("for player:", currentPlayer);
