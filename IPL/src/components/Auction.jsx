@@ -43,12 +43,18 @@ const Auction = ({ players, poolSize, configTime }) => {
     D: { basePrice: 80, maxBid: 700 },
     E: { basePrice: 50, maxBid: 400 },
   };
+  // useEffect(() => {
+  //   if (players && players.length > 0) {
+  //     setPlayersList(players.slice(0, poolSize));
+  //     setUnbiddedPlayersQueue([...players]);
+  //   }
+  // }, [players, poolSize]);
   useEffect(() => {
     if (players && players.length > 0) {
       setPlayersList(players.slice(0, poolSize));
       setUnbiddedPlayersQueue([...players]);
     }
-  }, [players, poolSize]);
+  }, []);
   const currentPlayer = playersList[currentPlayerIndex]
     ? playersList[currentPlayerIndex]
     : {
@@ -85,11 +91,6 @@ const Auction = ({ players, poolSize, configTime }) => {
   useEffect(() => {
     setHighestBid(currentPlayer.minimumBid || slabDetails.basePrice);
   }, [currentPlayerIndex]);
-  useEffect(() => {
-    // console.log("PlayersList:", playersList);
-    // console.log("UnbiddedPlayerQUeue:", unbiddedPlayersQueue);
-    // console.log("players:",players)
-  }, [timer]);
 
   const resetAuction = () => {
     setHighestBid(currentPlayer.minimumBid || slabDetails.basePrice);
@@ -190,40 +191,50 @@ const Auction = ({ players, poolSize, configTime }) => {
       }
     }
   };
-
-  const saveAuctionData = async (auctionData) => {
+const saveAuctionData = async (auctionData) => {
     try {
-      const response = await fetch("/api/saveAuction", {
+      const response = await fetch("http://localhost:3000/api/saveAuction", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(auctionData),
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to save auction data");
       }
-
+  
       const result = await response.json();
       console.log("Auction saved successfully:", result);
     } catch (error) {
       console.error("Error saving auction data:", error);
     }
   };
+  
   const displayResult = async () => {
     console.log("Auction completed!");
     alert("Auction completed!");
-
+  
     const auctionData = {
       owners: owners.map((owner) => ({
         id: owner.id,
         unitsLeft: owner.unitsLeft,
-        purchasedPlayers: owner.purchasedPlayers,
-        slabPlayers: owner.slabPlayers,
+        slabPlayers: {
+          A: owner.slabPlayers.A || [],
+          B: owner.slabPlayers.B || [],
+          C: owner.slabPlayers.C || [],
+          D: owner.slabPlayers.D || [],
+          E: owner.slabPlayers.E || [],
+        },
+        purchasedPlayers: owner.purchasedPlayers.map((player) => ({
+          name: player.name,
+          slab: player.slab,
+          playerId: player.playerId,
+        })),
       })),
     };
-
+  
     try {
       await saveAuctionData(auctionData);
       console.log("Auction data saved successfully!");
@@ -231,7 +242,7 @@ const Auction = ({ players, poolSize, configTime }) => {
       console.error("Error saving auction data:", error);
     }
   };
-
+  
   const moveToNextNonZeroPlayer = () => {
     console.log("MOVE TO NEXT NON ZERO PLAYER");
     if (

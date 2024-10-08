@@ -38,7 +38,9 @@ const EditPlayer = () => {
 useEffect(()=>{
 console.log("Player Data: ",playerData.PName)
 })
-  
+const handleBack = () => {
+    navigate("/config", { replace: true });
+  };
 const handleChange = (e) => {
     const { name, value } = e.target;
     setPlayerData({ ...playerData, [name]: value });
@@ -131,84 +133,14 @@ const handleChange = (e) => {
             />
           </div>
           <button type="submit">SAVE</button>
+          <button onClick={handleBack}>Back</button>
+
         </form>
       ) : (
         <p>Loading...</p>
       )}
     </div>
   );
-//   return (
-//     <div>
-//       <h2>Edit Player</h2>
-//       {playerData.PName ? (
-//         <form onSubmit={handleSubmit}>
-//           <div>
-//             <label>Name:</label>
-//             <input
-//               type="text"
-//               name="PName"
-//               value={playerData.PName}
-//               onChange={handleChange}
-//               required
-//             />
-//           </div>
-//           <div>
-//             <label>Age:</label>
-//             <input
-//               type="number"
-//               name="PAge"
-//               value={playerData.PAge}
-//               onChange={handleChange}
-//               required
-//             />
-//           </div>
-//           <div>
-//             <label>Position:</label>
-//             <input
-//               type="text"
-//               name="PRole"
-//               value={playerData.PRole}
-//               onChange={handleChange}
-//               required
-//             />
-//           </div>
-//           <div>
-//             <label>Height:</label>
-//             <input
-//               type="text"
-//               name="PHeight"
-//               value={playerData.PHeight}
-//               onChange={handleChange}
-//               required
-//             />
-//           </div>
-//           <div>
-//             <label>Weight:</label>
-//             <input
-//               type="text"
-//               name="PWeight"
-//               value={playerData.PWeight}
-//               onChange={handleChange}
-//               required
-//             />
-//           </div>
-//           <div>
-//             <label>Slab:</label>
-//             <input
-//               type="text"
-//               name="PSlab"
-//               value={playerData.PSlab}
-//               onChange={handleChange}
-//               required
-//             />
-//           </div>
-//           <button type="submit">SAVE</button>
-//         </form>
-//       ) : (
-//         <p>Loading...</p>
-//       )}
-//     </div>
-//   );
 };
 
 export default EditPlayer;

@@ -46,20 +46,25 @@ app.get('/api/getAllPlayers', (req, res) => {
       res.json(results);
     });
   });
-app.post('/api/saveAuction', (req, res) => {
+  app.post('/api/saveAuction', (req, res) => {
     const { owners } = req.body;
     const auctionData = {
-        owners: owners,
+      owners: owners.map((owner) => ({
+        id: owner.id,
+        unitsLeft: owner.unitsLeft,
+        purchasedPlayers: JSON.stringify(owner.purchasedPlayers),
+        slabPlayers: JSON.stringify(owner.slabPlayers),
+      })),
     };
     const sql = 'INSERT INTO auctions (owners) VALUES (?)';
     db.query(sql, [JSON.stringify(auctionData)], (err, result) => {
-        if (err) {
-            console.error('Error saving auction data:', err);
-            return res.status(500).json({ error: 'Database error' });
-        }
-        res.json({ message: 'Auction data saved successfully', result });
+      if (err) {
+        console.error('Error saving auction data:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.json({ message: 'Auction data saved successfully', result });
     });
-});
+  });
 
 // Get Previous Auctions
 app.get('/api/auctions', (req, res) => {
@@ -68,6 +73,7 @@ app.get('/api/auctions', (req, res) => {
             console.error('Error retrieving auctions:', err);
             return res.status(500).json({ error: 'Internal Server Error' });
         }
+        console.log(rows);
         res.json(rows);
     });
 });

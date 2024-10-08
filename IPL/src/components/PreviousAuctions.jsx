@@ -16,15 +16,31 @@ const PreviousAuctions = () => {
                     throw new Error('Failed to fetch auctions');
                 }
                 const data = await response.json();
-                console.log(data); // Log the entire response data
-                setAuctions(data);
+                
+                // Parse `purchasedPlayers` and `slabPlayers` if they are strings
+                const parsedData = data.map(auction => ({
+                    ...auction,
+                    owners: {
+                        owners: auction.owners.owners.map(owner => ({
+                            ...owner,
+                            purchasedPlayers: typeof owner.purchasedPlayers === 'string' 
+                                ? JSON.parse(owner.purchasedPlayers) 
+                                : owner.purchasedPlayers,
+                            slabPlayers: typeof owner.slabPlayers === 'string' 
+                                ? JSON.parse(owner.slabPlayers) 
+                                : owner.slabPlayers,
+                        })),
+                    },
+                }));
+
+                setAuctions(parsedData);
             } catch (err) {
                 setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
-    
+
         fetchAuctions();
     }, []);
     
@@ -47,7 +63,7 @@ const PreviousAuctions = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {auctions.map((auction) => (
+                    {auctions.sort((a, b) => b.id - a.id).map((auction) => (
                         <tr key={auction.id}>
                             <td>{auction.id}</td>
                             <td>
@@ -58,8 +74,8 @@ const PreviousAuctions = () => {
                                             <p>Units Left: {owner.unitsLeft}</p>
                                             <h5>Purchased Players:</h5>
                                             <ul>
-                                                {owner.purchasedPlayers.map((player) => (
-                                                    <li key={player.playerId}>
+                                                {owner.purchasedPlayers.map((player,index) => (
+                                                    <li key={player.playerId || index}>
                                                         {player.name} (Slab: {player.slab})
                                                     </li>
                                                 ))}

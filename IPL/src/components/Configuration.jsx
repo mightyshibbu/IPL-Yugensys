@@ -92,7 +92,7 @@ const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTi
               <td>{player.PRole}</td>
               <td>{player.PSlab}</td>
               <td>
-              <Link to={`/edit-player/${player.PID}`}>Edit</Link>
+              <div style={{color:"white"}}><Link to={`/edit-player/${player.PID}`}>Edit</Link></div>
               </td>
             </tr>
           ))}
