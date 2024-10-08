@@ -7,9 +7,11 @@ import img3 from "../static/img3.jpg";
 import img4 from "../static/img4.jpg";
 import img5 from "../static/img5.jpg";
 import img6 from "../static/img6.jpg";
-import img9 from "../static/img9.jpg";
-import img8 from "../static/img8.jpg";
 import img7 from "../static/img7.jpg";
+import img8 from "../static/img8.jpg";
+import img9 from "../static/img9.jpg";
+import img10 from "../static/img10.jpg";
+
 const images = [img1, img2, img3, img4, img5, img6, img7, img8, img9];
 const Auction = ({ players, poolSize, configTime }) => {
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
@@ -23,6 +25,7 @@ const Auction = ({ players, poolSize, configTime }) => {
   ]);
   const getPlayerImage = (playerIndex) => {
     // Use modulo to repeat the images for players beyond the 6th
+    if(currentPlayer.PID==9999){return img10;}
     return images[playerIndex % images.length];
   };
   const [timer, setTimer] = useState(configTime);
@@ -52,20 +55,22 @@ const Auction = ({ players, poolSize, configTime }) => {
   useEffect(() => {
     if (players && players.length > 0) {
       setPlayersList(players.slice(0, poolSize));
+      console.log("playersList", playersList); // rahul
+
       setUnbiddedPlayersQueue([...players]);
     }
   }, []);
   const currentPlayer = playersList[currentPlayerIndex]
     ? playersList[currentPlayerIndex]
     : {
-        PID: 9999,
-        PName: "COMPLETED!",
-        PAge: 99,
-        PHeight: "COMPLETED!",
-        PWeight: "COMPLETED!",
-        PRole: "COMPLETED!",
-        PSlab: "A",
-      };
+      PID: 9999,
+      PName: "",
+      PAge: 99,
+      PHeight: "",
+      PWeight: "",
+      PRole: "",
+      PSlab: "A",
+    };
 
   const slabDetails = slabs[currentPlayer.PSlab];
   const slabMaxSize = {
@@ -191,7 +196,7 @@ const Auction = ({ players, poolSize, configTime }) => {
       }
     }
   };
-const saveAuctionData = async (auctionData) => {
+  const saveAuctionData = async (auctionData) => {
     try {
       const response = await fetch("http://localhost:3000/api/saveAuction", {
         method: "POST",
@@ -200,22 +205,22 @@ const saveAuctionData = async (auctionData) => {
         },
         body: JSON.stringify(auctionData),
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to save auction data");
       }
-  
+
       const result = await response.json();
       console.log("Auction saved successfully:", result);
     } catch (error) {
       console.error("Error saving auction data:", error);
     }
   };
-  
+
   const displayResult = async () => {
     console.log("Auction completed!");
     alert("Auction completed!");
-  
+
     const auctionData = {
       owners: owners.map((owner) => ({
         id: owner.id,
@@ -234,15 +239,16 @@ const saveAuctionData = async (auctionData) => {
         })),
       })),
     };
-  
+
     try {
       await saveAuctionData(auctionData);
       console.log("Auction data saved successfully!");
+      navigate("/previousAuctions",{replace:true})
     } catch (error) {
       console.error("Error saving auction data:", error);
     }
   };
-  
+
   const moveToNextNonZeroPlayer = () => {
     console.log("MOVE TO NEXT NON ZERO PLAYER");
     if (
@@ -253,17 +259,16 @@ const saveAuctionData = async (auctionData) => {
     } else if (playersList.some((player) => player !== 0)) {
       console.log("Current playerList:", playersList);
       let nextNonZeroIndex = playersList.findIndex(
-        (player, index) => index > currentPlayerIndex && player !== 0
+        (player) =>  player !== 0
       );
-      if (nextNonZeroIndex === -1) {
-        nextNonZeroIndex = playersList.findIndex((player) => player !== 0);
-      }
       console.log(
         "nextNonZeroIndex: ",
         nextNonZeroIndex,
         " for player:",
         playersList[nextNonZeroIndex]
       );
+      console.log("inside moveToNextNonZeroPlayer, SETTING  CURRENT PLAYER INDEX TO: ", nextNonZeroIndex);
+
       setCurrentPlayerIndex(nextNonZeroIndex);
     } else {
       setTimer(0);
@@ -368,7 +373,7 @@ const saveAuctionData = async (auctionData) => {
               <div>Units Left: {owner.unitsLeft}</div>
               <div className="bid-options">
                 Available Bids:
-                {isStarted &&
+                {isStarted && currentPlayer.PID!=9999 &&
                   [
                     ...Array(
                       Math.floor(
@@ -385,18 +390,16 @@ const saveAuctionData = async (auctionData) => {
                       <span
                         key={bidValue}
                         className={`
-                    ${
-                      highestBid > bidValue || owner.unitsLeft < bidValue
-                        ? "line-through"
-                        : ""
-                    } 
-                    ${
-                      bidValue === slabDetails.maxBid
-                        ? owner.unitsLeft >= highestBid
-                          ? "pointer"
-                          : "not-allowed"
-                        : ""
-                    }
+                    ${highestBid > bidValue || owner.unitsLeft < bidValue
+                            ? "line-through"
+                            : ""
+                          } 
+                    ${bidValue === slabDetails.maxBid
+                            ? owner.unitsLeft >= highestBid
+                              ? "pointer"
+                              : "not-allowed"
+                            : ""
+                          }
                   `}
                         onClick={() => handleBidClick(owner.id, bidValue)}
                       >

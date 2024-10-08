@@ -7,7 +7,7 @@ import EditPlayer from './components/EditPlayer';
 import PreviousAuctions from './components/PreviousAuctions'
 
 function App() {
-  const [poolSize, setPoolSize] = useState(8);
+  const [poolSize, setPoolSize] = useState(3);
   const [configTime, setConfigTime] = useState(10);
   const [players, setPlayers] = useState([]);
 

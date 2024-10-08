@@ -52,7 +52,7 @@ const PreviousAuctions = () => {
 
     return (
         <div className="container">
-            <h2>Previous Auctions</h2>
+            <h2>Auction Directory</h2>
             <button onClick={handleDiscard}>Back</button>
             <table>
                 <thead>
