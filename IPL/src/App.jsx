@@ -3,7 +3,9 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import HomePage from './components/Homepage';
 import Configuration from './components/Configuration';
 import Auction from './components/Auction';
+import EditPlayer from './components/EditPlayer';
 import PreviousAuctions from './components/PreviousAuctions'
+
 function App() {
   const [poolSize, setPoolSize] = useState(8);
   const [configTime, setConfigTime] = useState(10);
@@ -25,12 +27,13 @@ function App() {
     };
 
     fetchPlayers();
-  }, []);
+  });
 
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage poolSize={poolSize} configTime={configTime} />} />
+        <Route path="/edit-player/:id" element={<EditPlayer />} />
         <Route path="/config" element={<Configuration players={players} poolSize={poolSize} setPoolSize={setPoolSize} configTime={configTime} setConfigTime={setConfigTime} />} />
         <Route path="/auction" element={<Auction players={players} poolSize={poolSize} configTime={configTime} />} />
         <Route path="/previousAuctions" element={<PreviousAuctions players={players} poolSize={poolSize} configTime={configTime} />} />

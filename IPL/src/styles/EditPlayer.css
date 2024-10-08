@@ -1,0 +1,65 @@
+.edit-player-container {
+    display: flex;
+    justify-content: center; /* Changed from space-between to center */
+    padding: 20px;
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #2b5876, #4e4376); /* Same theme */
+    color: #ffffff;
+    width: 97vw;
+    height: 86vh;
+    box-sizing: border-box; /* Ensures padding doesn't affect width and height */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .edit-player-container h2 {
+    font-size: 24px;
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .edit-player-form {
+      align-items: center;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    width: 320px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .edit-player-form label {
+    font-size: 14px;
+    color: #ffdf00;
+    margin-bottom: 8px;
+  }
+  
+  .edit-player-form input {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #ffdf00;
+    margin-bottom: 20px;
+  }
+  
+  .edit-player-form button[type="submit"] {
+    padding: 10px 15px;
+    border-radius: 5px;
+    border: none;
+    background-color: #007bff;
+    color: #ffdf00;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .edit-player-form button[type="submit"]:hover {
+    background-color: #0056b3;
+  }
+  
+  .edit-player-form button[type="submit"]:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+  }

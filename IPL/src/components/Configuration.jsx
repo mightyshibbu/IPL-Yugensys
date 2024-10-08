@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import '../styles/Configuration.css'; // You can add styles here
 import { useNavigate } from 'react-router-dom';
-
+import { Link } from 'react-router-dom';
 const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTime }) => {
   const navigate = useNavigate();
 
@@ -36,11 +36,6 @@ const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTi
     } else {
       setError('Please enter a valid pool size between 1 and ' + players.length);
     }
-  };
-
-  const handleEdit = (playerId) => {
-    // Logic to edit player details
-    navigate(`/edit-player/${playerId}`, { replace: true });
   };
 
   return (
@@ -97,7 +92,7 @@ const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTi
               <td>{player.PRole}</td>
               <td>{player.PSlab}</td>
               <td>
-                <button className="edit-btn" onClick={() => handleEdit(player.PID)}>EDIT</button>
+              <Link to={`/edit-player/${player.PID}`}>Edit</Link>
               </td>
             </tr>
           ))}
