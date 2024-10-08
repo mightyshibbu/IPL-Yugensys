@@ -1,0 +1,111 @@
+/* General page styling */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f7f6;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    font-size: 2rem;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+thead th {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+tbody td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Owner card styling */
+.owners-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.owner-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    width: 280px;
+    border-left: 4px solid #4CAF50;
+    margin-bottom: 15px;
+}
+
+.owner-card h4 {
+    font-size: 1.25rem;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.owner-card p {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.owner-card h5 {
+    font-size: 1.1rem;
+    margin-top: 10px;
+    color: #4CAF50;
+}
+
+ul {
+    padding-left: 20px;
+    margin: 0;
+    list-style-type: square;
+}
+
+ul li {
+    font-size: 0.9rem;
+    color: #444;
+    margin-bottom: 5px;
+}
+
+p {
+    color: #777;
+    font-size: 0.9rem;
+}
+
+/* Loading and error messages */
+.loading, .error {
+    font-size: 1.2rem;
+    color: #e74c3c;
+    text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .owner-card {
+        width: 100%;
+    }
+}
