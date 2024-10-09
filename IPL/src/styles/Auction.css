@@ -158,13 +158,13 @@ button {
   border-radius: 5px;
   border: none;
   background-color: #007bff; /* Blue background */
-  color: #ffdf00; /* Yellow text */
+  color: #fad900; /* Yellow text */
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
 button:hover {
-  background-color: #0056b3; /* Darker blue on hover */
+  background-color: #f9f9f9; /* Darker blue on hover */
 }
 
 button:disabled {
