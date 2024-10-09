@@ -69,7 +69,7 @@ const handleChange = (e) => {
   };
   return (
     <div className="edit-player-container">
-      {playerData.PName ? (
+      
           <form className="edit-player-form" onSubmit={handleSubmit}>
             <h2>Edit Player</h2>
           <div>
@@ -93,7 +93,7 @@ const handleChange = (e) => {
             />
           </div>
           <div>
-            <label>Position:</label>
+            <label>Role:</label>
             <input
               type="text"
               name="PRole"
@@ -136,9 +136,6 @@ const handleChange = (e) => {
           <button onClick={handleBack}>Back</button>
 
         </form>
-      ) : (
-        <p>Loading...</p>
-      )}
     </div>
   );
 };

@@ -1,0 +1,7 @@
+
+
+
+ 
+    <link rel="icon" type="image/svg+xml" href="/src/static/logo.ico" /> 
+    
+  

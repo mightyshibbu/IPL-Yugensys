@@ -335,7 +335,6 @@ const Auction = ({ players, poolSize, configTime }) => {
         <div>Role: {currentPlayer.PRole}</div>
       </div> */}
         <div className="player-card">
-          <div className="important-text">Auction ID: A07</div>
           <div className="important-text">Player Card</div>
           <img
             src={getPlayerImage(currentPlayerIndex)}
@@ -390,7 +389,7 @@ const Auction = ({ players, poolSize, configTime }) => {
                       <span
                         key={bidValue}
                         className={`
-                    ${highestBid > bidValue || owner.unitsLeft < bidValue
+                    ${highestBid >= bidValue || owner.unitsLeft < bidValue
                             ? "line-through"
                             : ""
                           } 
@@ -411,10 +410,11 @@ const Auction = ({ players, poolSize, configTime }) => {
                 Purchased Players: {owner.purchasedPlayers.join(", ") || "None"}
               </div>
               <button
+            
                 disabled={
-                  !highestBidder || highestBidder.id === owner.id || isStopped
+                  (highestBidder && highestBidder.id === owner.id) || isStopped
                 }
-                onClick={() => !isStopped && makeBid(owner.id)}
+                onClick={() =>{}}
               >
                 Make Bid
               </button>
