@@ -1,10 +1,10 @@
-import React from 'react';
+import React ,{useState}from 'react';
 import '../styles/Homepage.css'; // Assuming you will style this separately
 import { useNavigate } from 'react-router-dom';
-
+import Instructions from './Instructions'
 const HomePage = ({poolSize,configTime}) => {
   const navigate = useNavigate();
-
+  const [showInstructions, setShowInstructions] = useState(false);
   const handleConfig = () => {
     console.log("Navigating to Configuration");
     navigate("/config", { replace: true });
@@ -22,6 +22,14 @@ const HomePage = ({poolSize,configTime}) => {
     navigate("/previousAuctions", { replace: true }); // Assuming you have a previous auctions route
   };
 
+  const handleShowInstructions = () => {
+    setShowInstructions(true);
+  };
+
+  const handleCloseInstructions = () => {
+    setShowInstructions(false);
+  };
+
   return (
     <div className="homepage-container">
       <header className="auction-header">
@@ -31,13 +39,20 @@ const HomePage = ({poolSize,configTime}) => {
       <div className="button-container">
         <button className="auction-btn" onClick={handleConfig}>Configure</button>
         <button className="auction-btn" onClick={handleBeginAuction}>Begin Auction</button>
-        <button className="auction-btn" onClick={handleViewPrevious}>View Previous Auctions</button>
+        <button className="auction-btn" onClick={handleViewPrevious}>View History</button>
       </div>
       <div className="button-container">
         <label className='auction-btn'>Pool Size: {poolSize}</label>
-        <label className='auction-btn'>Bid Time: {configTime}</label>
+        <label className='auction-btn'>Timer(sec): {configTime}</label>
         </div>
+      <div className="button-container">
+      <button className="auction-instruction-btn" onClick={handleShowInstructions}>Instructions</button>
+        </div>
+        <div>
+      {showInstructions && <Instructions onClose={handleCloseInstructions} />}
     </div>
+    </div>
+    
   );
 };
 

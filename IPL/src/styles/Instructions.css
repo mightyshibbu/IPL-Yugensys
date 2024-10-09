@@ -1,0 +1,74 @@
+/* InstructionsModal.css */
+
+/* Backdrop for the modal */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+  
+  /* Modal content */
+  .modal-content {
+    background-color: rgb(0, 65, 162);
+    color: #eeff00; /* Text color for visibility */
+    padding: 20px;
+    border-radius: 10px;
+    width: 360px;
+    text-align: left; /* Align text to the left for better readability */
+    opacity: 0; /* Start with 0 opacity */
+    transform: translateY(-20px); /* Start slightly above */
+    transition: opacity 0.5s ease, transform 0.5s ease; /* Transition effect for fade and move */
+  }
+  
+  /* Class to trigger the fade-in effect */
+  .modal-content.fade-in {
+    opacity: 1; /* Fade in to full opacity */
+    transform: translateY(0); /* Move to original position */
+  }
+  
+  /* Close button inside modal */
+  .close-btn {
+    margin-top: 15px;
+    padding: 10px 15px;
+    background-color: #4b92df;
+    color: white; /* White text color for contrast */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .close-btn:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Headings and text styles */
+  .modal-content h2 {
+    color: #eeff00; /* Heading color */
+    margin-bottom: 15px;
+  }
+  
+  .modal-content p {
+    margin-bottom: 10px; /* Space between paragraphs */
+    color: whitesmoke;
+  }
+  
+  .slab-info {
+    margin: 10px 0; /* Space around slab info */
+    padding: 10px;
+    border: 1px solid #eeff00; /* Border around slab info */
+    border-radius: 5px; /* Slightly round the edges */
+    background-color: rgba(255, 255, 255, 0.1); /* Light background for visibility */
+  }
+  
+  .slab-info p {
+    margin: 5px 0; /* Space between slab items */
+    color: whitesmoke;
+  }
+  

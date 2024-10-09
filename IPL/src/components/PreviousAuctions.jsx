@@ -51,7 +51,7 @@ const PreviousAuctions = () => {
     if (error) return <div className="error">Error: {error}</div>;
 
     return (
-        <>return (
+        <>
             <div className="container">
                 <h2>Auction Directory</h2>
                 <button onClick={handleDiscard}>Back</button>

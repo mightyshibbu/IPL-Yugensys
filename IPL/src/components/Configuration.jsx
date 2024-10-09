@@ -52,7 +52,7 @@ const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTi
           className="pool-size-input"
         />
         {error && <div className="error-message">{error}</div>}
-        <button className="ok-btn" onClick={handleOk}>OK</button>
+        
       </div>
       <div className="time-container">
         <label>Set Bid Time (Default 10): </label>
@@ -65,8 +65,8 @@ const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTi
           className="pool-size-input"
         />
         {error && <div className="error-message">{error}</div>}
-        <button className="ok-btn" onClick={handleOk}>OK</button>
       </div>
+        <button className="ok-btn" onClick={handleOk}>OK</button>
 
       <table className="player-table">
         <thead>

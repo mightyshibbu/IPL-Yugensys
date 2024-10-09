@@ -118,6 +118,8 @@
 }
 
 .owner-card div {
+  margin-top: 10px;
+  margin-right: 100px;
   margin-bottom: 8px;
   color: #ffdf00; /* Yellow color for owner card text */
   font-size: 16px;

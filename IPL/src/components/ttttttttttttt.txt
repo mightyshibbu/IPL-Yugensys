@@ -1,0 +1,44 @@
+import React, { useEffect, useState } from 'react';
+
+// Your existing component code...
+
+const YourComponent = ({ playersList, owners, currentPlayer, currentPlayerIndex, slabDetails }) => {
+  const [highestBid, setHighestBid] = useState(0);
+
+  useEffect(() => {
+    setHighestBid(currentPlayer.minimumBid || slabDetails.basePrice);
+    
+    // Calculate the number of players left
+    const numberOfPlayersLeft = playersList.filter(player => player !== 0).length;
+    console.log("Number of Players Left: ", numberOfPlayersLeft);
+
+    // Check if we need to auto-assign the last player
+    if (numberOfPlayersLeft === 1) { // Ensure there's exactly one player left
+      let lowest = Infinity; // Initialize lowest to a large number
+      let ownerIndex = -1; // Initialize ownerIndex to an invalid value
+      
+      // Find the owner with the least number of purchased players
+      for (let i = 0; i < owners.length; i++) {
+        if (owners[i].purchasedPlayers.length < lowest) {
+          lowest = owners[i].purchasedPlayers.length;
+          ownerIndex = i; // Store the index of the owner with the least players
+        }
+      }
+      
+      // Auto assign the last player to the owner with the least players
+      if (ownerIndex !== -1) { // Check if a valid owner was found
+        autoAssign(ownerIndex);
+      }
+    }
+  }, [currentPlayerIndex, playersList, owners, currentPlayer, slabDetails]);
+
+  const autoAssign = (ownerId) => {
+    handleBidClick(ownerId, currentPlayer.minimumBid);
+  };
+
+  return (
+    // Your component JSX...
+  );
+};
+
+export default YourComponent;

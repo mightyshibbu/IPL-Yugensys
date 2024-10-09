@@ -48,12 +48,7 @@ const Auction = ({ players, poolSize, configTime }) => {
     D: { basePrice: 80, maxBid: 700 },
     E: { basePrice: 50, maxBid: 400 },
   };
-  // useEffect(() => {
-  //   if (players && players.length > 0) {
-  //     setPlayersList(players.slice(0, poolSize));
-  //     setUnbiddedPlayersQueue([...players]);
-  //   }
-  // }, [players, poolSize]);
+
   useEffect(() => {
     if (players && players.length > 0) {
       setPlayersList(players.slice(0, poolSize));
@@ -97,7 +92,35 @@ const Auction = ({ players, poolSize, configTime }) => {
 
   useEffect(() => {
     setHighestBid(currentPlayer.minimumBid || slabDetails.basePrice);
+    const numberOfPlayersLeft = playersList.filter(
+      (player) => player !== 0
+    ).length;
+    console.log("Number of Players Left: ", numberOfPlayersLeft);
+    if (numberOfPlayersLeft === 1) {
+      console.log("reached here");
+      let lowest = Infinity;
+      let ownerIndex = -1;
+      for (let i = 0; i < owners.length; i++) {
+        if (owners[i].purchasedPlayers.length < lowest) {
+          lowest = owners[i].purchasedPlayers.length;
+          ownerIndex = i;
+        }
+      }
+      if (ownerIndex !== -1) {
+        console.log("reached here 222");
+        autoAssign(ownerIndex+1);
+      }
+    }
   }, [currentPlayerIndex]);
+
+  const autoAssign = (ownerId) => {
+    console.log("Owner with the lowest no. of players:", ownerId);
+    console.log(
+      "reached here 333 , Players Base Price:",
+      slabs[currentPlayer.PSlab].basePrice
+    );
+    handleBidClick(ownerId, slabs[currentPlayer.PSlab].basePrice);
+  };
 
   const resetAuction = () => {
     setHighestBid(currentPlayer.minimumBid || slabDetails.basePrice);
@@ -108,8 +131,6 @@ const Auction = ({ players, poolSize, configTime }) => {
   const handleBidClick = useCallback(
     (ownerId, bidValue) => {
       if (!isStopped) {
-        console.log("aaaaa");
-
         const owner = owners.find((o) => o.id === ownerId);
         console.log("Bidder Owner", owner.id);
 
@@ -286,11 +307,6 @@ const Auction = ({ players, poolSize, configTime }) => {
       displayResult();
     }
   };
-  useEffect(() => {
-    console.log("Updated PlayersList: ", playersList);
-    console.log("Updated UnbiddedPlayersQueue: ", unbiddedPlayersQueue);
-  }, [playersList]);
-
   const assignPlayerToHighestBidder = () => {
     console.log("CURRENT LIST OF OWNERS:", owners);
     if (highestBidder) {
@@ -298,9 +314,7 @@ const Auction = ({ players, poolSize, configTime }) => {
     } else {
       console.log("NO HIGHEST BIDDER", currentPlayerIndex);
       console.log("for player:", currentPlayer);
-      console.log("Unbidded Players: ", unbiddedPlayersQueue);
-
-      console.log("My PlayersList: ", playersList);
+      console.log("PlayersList: ", playersList);
     }
     if (playersList.every((player) => player === 0)) {
       setTimer(0);
