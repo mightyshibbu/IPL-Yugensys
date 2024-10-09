@@ -37,6 +37,7 @@
 }
 
 .player-card img {
+  /* animation: rotation 2s infinite linear; */
   width: 240px; /* Fixed size for the player image */
   height: 240px;
   object-fit: cover;
@@ -44,6 +45,14 @@
   margin-bottom: 15px;
 }
 
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
 /* General text in player card */
 .player-card div {
   margin-bottom: 8px;

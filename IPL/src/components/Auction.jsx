@@ -32,9 +32,9 @@ const Auction = ({ players, poolSize, configTime }) => {
   };
   const [timer, setTimer] = useState(configTime);
   const [owners, setOwners] = useState([
-    { id: 1, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
-    { id: 2, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
-    { id: 3, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
+    { id: 1, unitsLeft: 800, purchasedPlayers: [], slabPlayers: {} },
+    { id: 2, unitsLeft: 800, purchasedPlayers: [], slabPlayers: {} },
+    { id: 3, unitsLeft: 800, purchasedPlayers: [], slabPlayers: {} },
   ]);
   const [ownersWithMaxBid, setOwnersWithMaxBid] = useState([]);
   const [isStarted, setIsStarted] = useState(false);
@@ -119,7 +119,7 @@ const Auction = ({ players, poolSize, configTime }) => {
       "reached here 333 , Players Base Price:",
       slabs[currentPlayer.PSlab].basePrice
     );
-    handleBidClick(ownerId, slabs[currentPlayer.PSlab].basePrice);
+    handleBidClick(ownerId, slabs[currentPlayer.PSlab].basePrice+100);
   };
 
   const resetAuction = () => {

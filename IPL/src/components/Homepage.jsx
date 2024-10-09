@@ -1,6 +1,7 @@
 import React ,{useState}from 'react';
 import '../styles/Homepage.css'; // Assuming you will style this separately
 import { useNavigate } from 'react-router-dom';
+import waterImage from '../static/water.png';
 import Instructions from './Instructions'
 const HomePage = ({poolSize,configTime}) => {
   const navigate = useNavigate();
@@ -32,6 +33,10 @@ const HomePage = ({poolSize,configTime}) => {
 
   return (
     <div className="homepage-container">
+      {/* Rotating Image */}
+      <div className="rotating-image-container">
+        <img src={waterImage} alt="Water" className="rotating-image" />
+      </div>
       <header className="auction-header">
         <h1>IPL LIVE AUCTION</h1>
         <h2>@Yugensys</h2>

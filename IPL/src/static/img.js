@@ -1,7 +1,0 @@
-import img1 from "../static/img1.jpg"
-import img1 from "../static/img1.jpg"
-import img1 from "../static/img1.jpg"
-import img1 from "../static/img1.jpg"
-import img1 from "../static/img1.jpg"
-import img1 from "../static/img1.jpg"
-import img1 from "../static/img1.jpg"
