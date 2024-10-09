@@ -25,7 +25,9 @@ const Auction = ({ players, poolSize, configTime }) => {
   ]);
   const getPlayerImage = (playerIndex) => {
     // Use modulo to repeat the images for players beyond the 6th
-    if(currentPlayer.PID==9999){return img10;}
+    if (currentPlayer.PID == 9999) {
+      return img10;
+    }
     return images[playerIndex % images.length];
   };
   const [timer, setTimer] = useState(configTime);
@@ -63,14 +65,14 @@ const Auction = ({ players, poolSize, configTime }) => {
   const currentPlayer = playersList[currentPlayerIndex]
     ? playersList[currentPlayerIndex]
     : {
-      PID: 9999,
-      PName: "",
-      PAge: 99,
-      PHeight: "",
-      PWeight: "",
-      PRole: "",
-      PSlab: "A",
-    };
+        PID: 9999,
+        PName: "",
+        PAge: 99,
+        PHeight: "",
+        PWeight: "",
+        PRole: "",
+        PSlab: "A",
+      };
 
   const slabDetails = slabs[currentPlayer.PSlab];
   const slabMaxSize = {
@@ -157,6 +159,13 @@ const Auction = ({ players, poolSize, configTime }) => {
     },
     [highestBid, isStopped, owners, setHighestBidder, setTimer, setOwners]
   );
+  const ifFullyFilled = (ownerID) => {
+    const owner = owners.find((o) => o.id === ownerID);
+    if (!owner) return false; // Handle case where owner is not found
+    const totalPurchased = owner.purchasedPlayers.length;
+    return totalPurchased < poolSize / 3 ? true : false;
+  };
+
   const makeBid = (ownerId) => {
     if (!isStopped) {
       const owner = owners.find((o) => o.id === ownerId);
@@ -243,7 +252,7 @@ const Auction = ({ players, poolSize, configTime }) => {
     try {
       await saveAuctionData(auctionData);
       console.log("Auction data saved successfully!");
-      navigate("/previousAuctions",{replace:true})
+      navigate("/previousAuctions", { replace: true });
     } catch (error) {
       console.error("Error saving auction data:", error);
     }
@@ -258,16 +267,17 @@ const Auction = ({ players, poolSize, configTime }) => {
       setCurrentPlayerIndex((prevIndex) => prevIndex + 1);
     } else if (playersList.some((player) => player !== 0)) {
       console.log("Current playerList:", playersList);
-      let nextNonZeroIndex = playersList.findIndex(
-        (player) =>  player !== 0
-      );
+      let nextNonZeroIndex = playersList.findIndex((player) => player !== 0);
       console.log(
         "nextNonZeroIndex: ",
         nextNonZeroIndex,
         " for player:",
         playersList[nextNonZeroIndex]
       );
-      console.log("inside moveToNextNonZeroPlayer, SETTING  CURRENT PLAYER INDEX TO: ", nextNonZeroIndex);
+      console.log(
+        "inside moveToNextNonZeroPlayer, SETTING  CURRENT PLAYER INDEX TO: ",
+        nextNonZeroIndex
+      );
 
       setCurrentPlayerIndex(nextNonZeroIndex);
     } else {
@@ -320,20 +330,6 @@ const Auction = ({ players, poolSize, configTime }) => {
   return (
     <>
       <div className="auction-container">
-        {/* <div className="player-card">
-        <div>Auction ID: A07</div>
-        <div>Player Card</div>
-        <img src={getPlayerImage(currentPlayerIndex)} alt="Player"  style={{ width: "240px", height: "240px", objectFit: "cover" }}  />
-        <div>Slab: {currentPlayer.PSlab}</div>
-        <div>Minimum Bid: {slabDetails.basePrice}</div>
-        <div>Maximum Bid: {slabDetails.maxBid}</div>
-        <div>Player ID: {currentPlayer.PID}</div>
-        <div>Name: {currentPlayer.PName}</div>
-        <div>Age: {currentPlayer.PAge}</div>
-        <div>Height: {currentPlayer.PHeight}</div>
-        <div>Weight: {currentPlayer.PWeight}</div>
-        <div>Role: {currentPlayer.PRole}</div>
-      </div> */}
         <div className="player-card">
           <div className="important-text">Player Card</div>
           <img
@@ -372,7 +368,9 @@ const Auction = ({ players, poolSize, configTime }) => {
               <div>Units Left: {owner.unitsLeft}</div>
               <div className="bid-options">
                 Available Bids:
-                {isStarted && currentPlayer.PID!=9999 &&
+                {isStarted &&
+                  ifFullyFilled(owner.id) &&
+                  currentPlayer.PID != 9999 &&
                   [
                     ...Array(
                       Math.floor(
@@ -389,16 +387,18 @@ const Auction = ({ players, poolSize, configTime }) => {
                       <span
                         key={bidValue}
                         className={`
-                    ${highestBid >= bidValue || owner.unitsLeft < bidValue
-                            ? "line-through"
-                            : ""
-                          } 
-                    ${bidValue === slabDetails.maxBid
-                            ? owner.unitsLeft >= highestBid
-                              ? "pointer"
-                              : "not-allowed"
-                            : ""
-                          }
+                    ${
+                      highestBid >= bidValue || owner.unitsLeft < bidValue
+                        ? "line-through"
+                        : ""
+                    } 
+                    ${
+                      bidValue === slabDetails.maxBid
+                        ? owner.unitsLeft >= highestBid
+                          ? "pointer"
+                          : "not-allowed"
+                        : ""
+                    }
                   `}
                         onClick={() => handleBidClick(owner.id, bidValue)}
                       >
@@ -410,11 +410,10 @@ const Auction = ({ players, poolSize, configTime }) => {
                 Purchased Players: {owner.purchasedPlayers.join(", ") || "None"}
               </div>
               <button
-            
                 disabled={
                   (highestBidder && highestBidder.id === owner.id) || isStopped
                 }
-                onClick={() =>{}}
+                onClick={() => {}}
               >
                 Make Bid
               </button>
