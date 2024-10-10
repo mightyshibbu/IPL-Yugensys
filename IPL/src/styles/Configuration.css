@@ -175,3 +175,41 @@
     width: 100%;
   }
 }
+/* Increase/Decrease Pool Size button styling */
+.adjuster-buttons button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  background-color: #ffdf00; /* Matching OK button background */
+  color: #2b5876; /* Text color to match the theme */
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  margin: 0 10px; /* Space between buttons */
+}
+
+.adjuster-buttons button:hover {
+  background-color: #ffcf00;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Disable button when not allowed */
+.adjuster-buttons button:disabled {
+  background-color: #d3d3d3;
+  color: #a9a9a9;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.selected-pool-size ,.selected-time {
+  font-size: 2rem;
+  color: #ffdf00; /* Bright yellow to match theme */
+  padding: 10px 20px;
+  border: 2px solid #ffdf00;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  width: 100px; /* Fixed width to maintain structure */
+  text-align: center;
+}

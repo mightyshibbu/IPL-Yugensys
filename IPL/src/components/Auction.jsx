@@ -13,7 +13,8 @@ import img9 from "../static/img9.jpg";
 import img10 from "../static/img10.jpg";
 
 const images = [img1, img2, img3, img4, img5, img6, img7, img8, img9];
-const Auction = ({ players, poolSize, configTime }) => {
+
+const Auction = ({ players, poolSize,setPoolSize, configTime }) => {
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
   const [playersList, setPlayersList] = useState(players.slice(0, poolSize));
   const [highestBid, setHighestBid] = useState(
@@ -32,9 +33,9 @@ const Auction = ({ players, poolSize, configTime }) => {
   };
   const [timer, setTimer] = useState(configTime);
   const [owners, setOwners] = useState([
-    { id: 1, unitsLeft: 800, purchasedPlayers: [], slabPlayers: {} },
-    { id: 2, unitsLeft: 800, purchasedPlayers: [], slabPlayers: {} },
-    { id: 3, unitsLeft: 800, purchasedPlayers: [], slabPlayers: {} },
+    { id: 1, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
+    { id: 2, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
+    { id: 3, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
   ]);
   const [ownersWithMaxBid, setOwnersWithMaxBid] = useState([]);
   const [isStarted, setIsStarted] = useState(false);
@@ -48,35 +49,114 @@ const Auction = ({ players, poolSize, configTime }) => {
     D: { basePrice: 80, maxBid: 700 },
     E: { basePrice: 50, maxBid: 400 },
   };
-
   useEffect(() => {
-    if (players && players.length > 0) {
+    const savedAuctionData = localStorage.getItem('auctionData');
+    
+    if (savedAuctionData) {
+      const {
+        playersList: savedPlayersList,
+        poolSize: savedPoolSize,
+        currentPlayerIndex: savedCurrentPlayerIndex,
+        owners: savedOwners,
+        highestBid: savedHighestBid,
+        highestBidder: savedHighestBidder,
+        unbiddedPlayersQueue: savedUnbiddedPlayersQueue,
+        timer: savedTimer,
+        isStarted: savedIsStarted // Add this to check if auction was started
+      } = JSON.parse(savedAuctionData);
+  
+      setIsStarted(savedIsStarted || false); // Check if the auction was started before
+  
+      setPlayersList(savedPlayersList || players.slice(0, poolSize));
+      setOwners(savedOwners || [
+        { id: 1, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
+        { id: 2, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
+        { id: 3, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
+      ]);
+      setHighestBid(savedHighestBid || (savedPlayersList[savedCurrentPlayerIndex]?.minimumBid || 0));
+      setHighestBidder(savedHighestBidder || null);
+      setUnbiddedPlayersQueue(savedUnbiddedPlayersQueue || [...savedPlayersList]);
+      setTimer(savedTimer || configTime);
+      setPoolSize(savedPoolSize || poolSize);
+      
+      if (savedIsStarted) {
+        // Only move to the next player if the auction was already started
+        moveToNextNonZeroPlayer();
+      } else {
+        // If the auction hasn't started, reset the currentPlayerIndex to 0
+        setCurrentPlayerIndex(savedCurrentPlayerIndex || 0);
+      }
+  
+    } else {
       setPlayersList(players.slice(0, poolSize));
-      console.log("playersList", playersList); // rahul
-
-      setUnbiddedPlayersQueue([...players]);
+      setOwners([
+        { id: 1, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
+        { id: 2, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
+        { id: 3, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
+      ]);
+      setHighestBid(0);
+      setHighestBidder(null);
+      setUnbiddedPlayersQueue([...players.slice(0, poolSize)]);
+      setTimer(configTime);
+      setPoolSize(poolSize);
+      setCurrentPlayerIndex(0); // Move to the first player
     }
-  }, []);
-  const currentPlayer = playersList[currentPlayerIndex]
-    ? playersList[currentPlayerIndex]
-    : {
-        PID: 9999,
-        PName: "",
-        PAge: 99,
-        PHeight: "",
-        PWeight: "",
-        PRole: "",
-        PSlab: "A",
-      };
-
-  const slabDetails = slabs[currentPlayer.PSlab];
-  const slabMaxSize = {
-    A: 2,
-    B: 2,
-    C: 2,
-    D: 1,
-    E: 1,
-  };
+  }, [poolSize, players]);
+  
+  // useEffect(() => {
+  //   const savedAuctionData = localStorage.getItem('auctionData');
+  
+  //   if (savedAuctionData) {
+  //     // Load auction data from localStorage
+  //     const {
+  //       playersList: savedPlayersList,
+  //       poolSize: savedPoolSize,
+  //       currentPlayerIndex: savedCurrentPlayerIndex,
+  //       owners: savedOwners,
+  //       highestBid: savedHighestBid,
+  //       highestBidder: savedHighestBidder,
+  //       unbiddedPlayersQueue: savedUnbiddedPlayersQueue,
+  //       timer: savedTimer
+  //     } = JSON.parse(savedAuctionData);
+  
+  //     // Initialize states with saved data or fallback to default values
+  //     setPlayersList(savedPlayersList || players.slice(0, poolSize));
+  //     setOwners(savedOwners || [
+  //       { id: 1, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
+  //       { id: 2, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
+  //       { id: 3, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
+  //     ]);
+  //     setHighestBid(savedHighestBid || (savedPlayersList[savedCurrentPlayerIndex]?.minimumBid || 0));
+  //     setHighestBidder(savedHighestBidder || null);
+  //     setUnbiddedPlayersQueue(savedUnbiddedPlayersQueue || [...savedPlayersList]);
+  //     setTimer(savedTimer || configTime);
+  //     setPoolSize(savedPoolSize || poolSize);
+  
+  //     // Check if the current player has been bid on already
+  //     if (savedPlayersList[savedCurrentPlayerIndex] === 0) {
+  //       moveToNextNonZeroPlayer(); // Skip already bid players
+  //     } else {
+  //       setCurrentPlayerIndex(savedCurrentPlayerIndex || 0);
+  //     }
+  //   } else {
+  //     // No saved data found in localStorage, initialize with props
+  //     setPlayersList(players.slice(0, poolSize)); // Initialize players list based on pool size
+  //     setOwners([
+  //       { id: 1, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
+  //       { id: 2, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
+  //       { id: 3, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
+  //     ]);
+  //     setHighestBid(0); // Start with no bids
+  //     setHighestBidder(null); // No highest bidder at start
+  //     setUnbiddedPlayersQueue([...players.slice(0, poolSize)]); // Queue of players available for bidding
+  //     setTimer(configTime); // Set timer to default value
+  //     setPoolSize(poolSize); // Use default pool size from props
+  
+  //     // Move to the first player (initialize currentPlayerIndex)
+  //     moveToNextNonZeroPlayer(); // Find the first available player to bid
+  //   }
+  // }, [poolSize, players]);
+   // Run only once when the component mounts
   useEffect(() => {
     if (isStarted && !isStopped) {
       if (timer === 0) {
@@ -112,7 +192,41 @@ const Auction = ({ players, poolSize, configTime }) => {
       }
     }
   }, [currentPlayerIndex]);
+  const currentPlayer = playersList[currentPlayerIndex]
+    ? playersList[currentPlayerIndex]
+    : {
+        PID: 9999,
+        PName: "",
+        PAge: 0,
+        PHeight: "",
+        PWeight: "",
+        PRole: "",
+        PSlab: "A",
+      };
 
+  const slabDetails = slabs[currentPlayer.PSlab];
+
+  const slabMaxSize = (poolSize) => {
+    return poolSize <= 8 ? {
+      A: 3,
+      B: 3,
+      C: 3,
+      D: 3,
+      E: 1,
+    } : poolSize <= 16 ? {
+      A: 2,
+      B: 2,
+      C: 2,
+      D: 1,
+      E: 1,
+    } : {
+      A: 6,
+      B: 6,
+      C: 6,
+      D: 3,
+      E: 3,
+    };
+  };
   const autoAssign = (ownerId) => {
     console.log("Owner with the lowest no. of players:", ownerId);
     console.log(
@@ -187,15 +301,58 @@ const Auction = ({ players, poolSize, configTime }) => {
     return totalPurchased < poolSize / 3 ? true : false;
   };
 
+  // const makeBid = (ownerId) => {
+  //   if (!isStopped) {
+  //     const owner = owners.find((o) => o.id === ownerId);
+  //     const slabPlayers = owner.slabPlayers[currentPlayer.PSlab] || [];
+  //     console.log("Current SlabMax:",slabMaxSize)
+  //     if (slabPlayers.length < slabMaxSize[currentPlayer.PSlab]) {
+  //       slabPlayers.push(currentPlayer.PName);
+  //       owner.purchasedPlayers.push(currentPlayer.PName);
+
+  //       setOwners(
+  //         owners.map((o) => {
+  //           if (o.id === ownerId) {
+  //             return {
+  //               ...o,
+  //               unitsLeft: o.unitsLeft - highestBid,
+  //               slabPlayers: {
+  //                 ...o.slabPlayers,
+  //                 [currentPlayer.PSlab]: slabPlayers,
+  //               },
+  //             };
+  //           }
+  //           return o;
+  //         })
+  //       );
+  //       setUnbiddedPlayersQueue((prevQueue) =>
+  //         prevQueue.filter((player) => player.PID !== currentPlayer.PID)
+  //       );
+  //       setPlayersList((prevPlayers) => {
+  //         const updatedPlayers = [...prevPlayers];
+  //         updatedPlayers[currentPlayerIndex] = 0;
+  //         return updatedPlayers;
+  //       });
+  //     } else {
+  //       alert(
+  //         `Owner ${owner.id} cannot purchase more players from ${currentPlayer.PSlab}`
+  //       );
+  //     }
+  //   }
+  // };
   const makeBid = (ownerId) => {
     if (!isStopped) {
       const owner = owners.find((o) => o.id === ownerId);
       const slabPlayers = owner.slabPlayers[currentPlayer.PSlab] || [];
-
-      if (slabPlayers.length < slabMaxSize[currentPlayer.PSlab]) {
+  
+      // Call slabMaxSize with the appropriate pool size (replace `poolSize` with the actual value)
+      const currentSlabMaxSize = slabMaxSize(poolSize);
+      console.log("Current SlabMax:", currentSlabMaxSize);
+  
+      if (slabPlayers.length < currentSlabMaxSize[currentPlayer.PSlab]) {
         slabPlayers.push(currentPlayer.PName);
         owner.purchasedPlayers.push(currentPlayer.PName);
-
+  
         setOwners(
           owners.map((o) => {
             if (o.id === ownerId) {
@@ -226,6 +383,7 @@ const Auction = ({ players, poolSize, configTime }) => {
       }
     }
   };
+  
   const saveAuctionData = async (auctionData) => {
     try {
       const response = await fetch("http://localhost:3000/api/saveAuction", {
@@ -247,10 +405,41 @@ const Auction = ({ players, poolSize, configTime }) => {
     }
   };
 
+  // const displayResult = async () => {
+  //   console.log("Auction completed!");
+  //   alert("Auction completed!");
+
+  //   const auctionData = {
+  //     owners: owners.map((owner) => ({
+  //       id: owner.id,
+  //       unitsLeft: owner.unitsLeft,
+  //       slabPlayers: {
+  //         A: owner.slabPlayers.A || [],
+  //         B: owner.slabPlayers.B || [],
+  //         C: owner.slabPlayers.C || [],
+  //         D: owner.slabPlayers.D || [],
+  //         E: owner.slabPlayers.E || [],
+  //       },
+  //       purchasedPlayers: owner.purchasedPlayers.map((player) => ({
+  //         name: player.name,
+  //         slab: player.slab,
+  //         playerId: player.playerId,
+  //       })),
+  //     })),
+  //   };
+
+  //   try {
+  //     await saveAuctionData(auctionData);
+  //     console.log("Auction data saved successfully!");
+  //     navigate("/previousAuctions", { replace: true });
+  //   } catch (error) {
+  //     console.error("Error saving auction data:", error);
+  //   }
+  // };
   const displayResult = async () => {
     console.log("Auction completed!");
     alert("Auction completed!");
-
+  
     const auctionData = {
       owners: owners.map((owner) => ({
         id: owner.id,
@@ -269,44 +458,113 @@ const Auction = ({ players, poolSize, configTime }) => {
         })),
       })),
     };
-
+  
     try {
       await saveAuctionData(auctionData);
       console.log("Auction data saved successfully!");
       navigate("/previousAuctions", { replace: true });
+      // Clear saved data
     } catch (error) {
       console.error("Error saving auction data:", error);
     }
   };
+  
+  // const moveToNextNonZeroPlayer = () => {
+  //   console.log("MOVE TO NEXT NON ZERO PLAYER");
+  //   if (
+  //     currentPlayerIndex < poolSize - 1 &&
+  //     playersList[currentPlayerIndex + 1] !== 0
+  //   ) {
+  //     setCurrentPlayerIndex((prevIndex) => prevIndex + 1);
+  //   } else if (playersList.some((player) => player !== 0)) {
+  //     console.log("Current playerList:", playersList);
+  //     let nextNonZeroIndex = playersList.findIndex((player) => player !== 0);
+  //     console.log(
+  //       "nextNonZeroIndex: ",
+  //       nextNonZeroIndex,
+  //       " for player:",
+  //       playersList[nextNonZeroIndex]
+  //     );
+  //     console.log(
+  //       "inside moveToNextNonZeroPlayer, SETTING  CURRENT PLAYER INDEX TO: ",
+  //       nextNonZeroIndex
+  //     );
 
+  //     setCurrentPlayerIndex(nextNonZeroIndex);
+  //   } else {
+  //     setTimer(0);
+  //     setIsStarted(false);
+  //     displayResult();
+  //   }
+  // };
   const moveToNextNonZeroPlayer = () => {
     console.log("MOVE TO NEXT NON ZERO PLAYER");
-    if (
-      currentPlayerIndex < poolSize - 1 &&
-      playersList[currentPlayerIndex + 1] !== 0
-    ) {
-      setCurrentPlayerIndex((prevIndex) => prevIndex + 1);
-    } else if (playersList.some((player) => player !== 0)) {
-      console.log("Current playerList:", playersList);
-      let nextNonZeroIndex = playersList.findIndex((player) => player !== 0);
-      console.log(
-        "nextNonZeroIndex: ",
-        nextNonZeroIndex,
-        " for player:",
-        playersList[nextNonZeroIndex]
-      );
-      console.log(
-        "inside moveToNextNonZeroPlayer, SETTING  CURRENT PLAYER INDEX TO: ",
-        nextNonZeroIndex
-      );
-
-      setCurrentPlayerIndex(nextNonZeroIndex);
+    // Check if there are any remaining non-zero players
+    if (playersList.some((player) => player !== 0)) {
+      let nextNonZeroIndex = playersList.findIndex((player, index) => index > currentPlayerIndex && player !== 0);
+      
+      // If no non-zero players after current index, wrap around to the first one
+      if (nextNonZeroIndex === -1) {
+        nextNonZeroIndex = playersList.findIndex((player) => player !== 0);
+      }
+  
+      if (nextNonZeroIndex !== -1) {
+        setCurrentPlayerIndex(nextNonZeroIndex);
+        console.log("Next Non-Zero Player Index: ", nextNonZeroIndex);
+        console.log("IMMEGIATE currentplayerIndex",currentPlayerIndex);
+        
+      } else {
+        console.log("No more valid players left.");
+        setIsStarted(false);
+        displayResult(); // End the auction if no more players
+      }
     } else {
-      setTimer(0);
+      console.log("All players have been bid on.");
       setIsStarted(false);
-      displayResult();
+      displayResult(); // End the auction if all players have been assigned
     }
   };
+  
+  // const assignPlayerToHighestBidder = () => {
+  //   console.log("CURRENT LIST OF OWNERS:", owners);
+  //   if (highestBidder) {
+  //     makeBid(highestBidder.id);
+  //   } else {
+  //     console.log("NO HIGHEST BIDDER", currentPlayerIndex);
+  //     console.log("for player:", currentPlayer);
+  //     console.log("PlayersList: ", playersList);
+  //   }
+  //   // localStorage.setItem('auctionData', JSON.stringify({
+  //   //   playersList,
+  //   //   currentPlayerIndex,
+  //   //   owners,
+  //   //   highestBid,
+  //   //   highestBidder,
+  //   //   poolSize,
+  //   //   unbiddedPlayersQueue,
+  //   //   timer
+  //   // }));
+  //   if (playersList.every((player) => player === 0)) {
+  //     setTimer(0);
+  //     setIsStarted(false);
+  //     displayResult();
+  //   } else {
+  //     moveToNextNonZeroPlayer();
+  //     localStorage.setItem('auctionData', JSON.stringify({
+  //       playersList,
+  //       currentPlayerIndex,
+  //       owners,
+  //       highestBid,
+  //       highestBidder,
+  //       poolSize,
+  //       unbiddedPlayersQueue,
+  //       timer
+  //     }));
+  //     resetAuction();
+  //   }
+  //   resetAuction();
+  // };
+  
   const assignPlayerToHighestBidder = () => {
     console.log("CURRENT LIST OF OWNERS:", owners);
     if (highestBidder) {
@@ -314,22 +572,45 @@ const Auction = ({ players, poolSize, configTime }) => {
     } else {
       console.log("NO HIGHEST BIDDER", currentPlayerIndex);
       console.log("for player:", currentPlayer);
-      console.log("PlayersList: ", playersList);
     }
+  
+    // Check if the auction should continue
     if (playersList.every((player) => player === 0)) {
-      setTimer(0);
       setIsStarted(false);
       displayResult();
     } else {
       moveToNextNonZeroPlayer();
-      resetAuction();
+      // Save auction state after each assignment
+      console.log("IIMEDIATE CurrentPlayerIndex before localStorage",currentPlayerIndex)
+      localStorage.setItem('auctionData', JSON.stringify({
+        playersList,
+        currentPlayerIndex,
+        owners,
+        highestBid,
+        highestBidder,
+        poolSize,
+        unbiddedPlayersQueue,
+        timer
+      }));
+      
+      resetAuction();  // Reset for the next player
     }
-    resetAuction();
   };
-
+  
   const handleStart = () => {
     setIsStarted(true);
     setIsStopped(false);
+
+  localStorage.setItem('auctionData', JSON.stringify({
+    playersList,
+    currentPlayerIndex,
+    owners,
+    highestBid,
+    highestBidder,
+    unbiddedPlayersQueue,
+    poolSize, // Add this
+    timer // Already present
+  }));
   };
 
   const handleStop = () => {
@@ -338,6 +619,7 @@ const Auction = ({ players, poolSize, configTime }) => {
   };
 
   const handleDiscard = () => {
+    localStorage.removeItem('auctionData'); 
     navigate("/", { replace: true });
   };
 
@@ -378,7 +660,7 @@ const Auction = ({ players, poolSize, configTime }) => {
 
           {owners.map((owner) => (
             <div key={owner.id} className="owner-card">
-              <div>Owner {owner.id}</div>
+              {owner.id==1?(<div>Owner {owner.id} (PRANAV TRIPATHI)</div>):(<div>Owner {owner.id}</div>)}
               <div>Units Left: {owner.unitsLeft}</div>
               <div className="bid-options">
                 Available Bids:
@@ -402,7 +684,7 @@ const Auction = ({ players, poolSize, configTime }) => {
                         key={bidValue}
                         className={`
                     ${
-                      highestBid >= bidValue || owner.unitsLeft < bidValue
+                      highestBid > bidValue || owner.unitsLeft < bidValue
                         ? "line-through"
                         : ""
                     } 

@@ -27,7 +27,7 @@ function App() {
     };
 
     fetchPlayers();
-  });
+  },[]);
 
   return (
     <BrowserRouter>
@@ -35,7 +35,7 @@ function App() {
         <Route path="/" element={<HomePage poolSize={poolSize} configTime={configTime} />} />
         <Route path="/edit-player/:id" element={<EditPlayer />} />
         <Route path="/config" element={<Configuration players={players} poolSize={poolSize} setPoolSize={setPoolSize} configTime={configTime} setConfigTime={setConfigTime} />} />
-        <Route path="/auction" element={<Auction players={players} poolSize={poolSize} configTime={configTime} />} />
+        <Route path="/auction" element={<Auction players={players} setPoolSize={setPoolSize} poolSize={poolSize} configTime={configTime} />} />
         <Route path="/previousAuctions" element={<PreviousAuctions players={players} poolSize={poolSize} configTime={configTime} />} />
       </Routes>
     </BrowserRouter>

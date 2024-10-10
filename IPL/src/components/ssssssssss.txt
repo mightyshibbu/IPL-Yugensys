@@ -429,3 +429,109 @@ const Auction = ({ players, poolSize, configTime }) => {
 };
 
 export default Auction;
+
+
+
+
+
+
+
+IPL Style Auction System
+This project implements an IPL-style auction system built using the MERN stack, with MySQL as the database for persisting auction data. It is a web-based application that allows team owners to bid on a pool of players in an auction setting, with several configurable options for flexibility.
+
+Features
+Data Persistence: Auctions and player-related data are stored in a MySQL database.
+Configurable Player Data: Admins can configure player details, such as player names and starting bid prices.
+Configurable Pool Size: The total number of players in the pool is customizable, with an initial configuration of 21 players.
+Configurable Bid Timer: The duration of bidding time for each player is adjustable.
+Auction History: View the history of past auctions, including bids and final team compositions.
+Enhanced UI/UX: Improved user experience and a sleek, responsive interface.
+Instruction Panel: A dedicated panel to guide users through the auction process.
+Auto-Assign Last Player: Automatically assigns the last player to teams when required.
+Chit System: In case of ties where two teams reach the maximum bid, a chit system is used to determine the winner.
+Automatic Pool Size Adjustment: Pool size is automatically rounded to ensure equal player distribution among the three teams (multiples of 3).
+Project Structure
+Frontend: ReactJS
+Backend: Node.js + Express.js
+Database: MySQL for auction and player persistence
+Other: REST APIs to communicate between frontend and backend
+IPL Auction System Requirements
+Overview
+Teams: 3 team owners participate in the auction.
+Players: A pool of 21 players divided among the teams.
+Player Slabs: Players are divided into five categories (Slabs) as follows:
+Slab A: 6 players
+Slab B: 6 players
+Slab C: 6 players
+Slab D: 3 players
+Slab E: 3 players
+Team Budget: Each team owner is allocated 2,500 units for bidding on players.
+Configurable Settings
+Number of Players: The pool of players is configurable (default: 21 players).
+Player Names and Slabs: The names of players and their respective slab categories can be adjusted.
+Bid Timer: The duration of the bid timer for each player is configurable.
+Player Categories & Base Prices
+Slab	Base Price (units)	Max Bid (units)
+Slab A	200	800
+Slab B	150	800
+Slab C	100	700
+Slab D	80	700
+Slab E	50	400
+Rules & Restrictions
+Maximum Players per Slab: Each team owner can purchase a maximum of two players per slab.
+Tiebreaker Mechanism: If two teams tie at the maximum bid for a player, the player is assigned using a chit system.
+Automatic Assignment: If a team owner runs out of units or fails to bid, the remaining players will be automatically assigned at their base price.
+Pool Size Adjustment: Pool size is automatically adjusted to ensure an equal number of players for each team.
+Installation & Setup
+Prerequisites
+Node.js
+MySQL
+Steps
+Clone the repository:
+
+bash
+Copy code
+git clone <repository-url>
+cd <repository-directory>
+Backend Setup:
+
+Install backend dependencies:
+bash
+Copy code
+cd backend
+npm install
+Create a .env file in the backend directory and add the following environment variables:
+makefile
+Copy code
+DB_HOST=<MySQL Host>
+DB_USER=<MySQL Username>
+DB_PASSWORD=<MySQL Password>
+DB_NAME=<MySQL Database Name>
+Run the backend server:
+bash
+Copy code
+npm start
+Frontend Setup:
+
+Navigate to the frontend directory and install dependencies:
+bash
+Copy code
+cd frontend
+npm install
+Run the frontend server:
+bash
+Copy code
+npm start
+MySQL Setup:
+
+Import the provided database schema in your MySQL setup.
+Ensure that the MySQL server is running and accessible with the credentials provided in the .env file.
+Usage
+Launch the frontend and backend servers.
+Admins can configure player data, pool size, and bid timer settings from the admin dashboard.
+Team owners can participate in the auction by bidding on players during the auction period.
+The app ensures that all bidding rules and constraints are followed throughout the auction process.
+Future Enhancements
+Support for more than 3 teams.
+Integration with additional databases (e.g., PostgreSQL).
+Addition of real-time notifications and a more dynamic auction environment.

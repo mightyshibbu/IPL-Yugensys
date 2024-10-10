@@ -8,15 +8,33 @@ const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTi
   const [error, setError] = useState(null);
   const [inputValue, setInputValue] = useState(poolSize);
 
-  const handlePoolSizeChange = (event) => {
-    const newSize = Number(event.target.value);
-    setInputValue(newSize);
-    const roundedSize = Math.round(newSize / 3) * 3; // Round to nearest multiple of 3
-    if (roundedSize >= 1 && roundedSize <= players.length) {
-      setPoolSize(roundedSize); // Update only if within valid range
-      setError(null); // Clear any previous error
+  // const handlePoolSizeChange = (event) => {
+  //   const newSize = Number(event.target.value);
+  //   setInputValue(newSize);
+  //   const roundedSize = Math.round(newSize / 3) * 3; // Round to nearest multiple of 3
+  //   if (roundedSize >= 1 && roundedSize <= players.length) {
+  //     setPoolSize(roundedSize); // Update only if within valid range
+  //     setError(null); // Clear any previous error
+  //   } else {
+  //     setError('Please enter a valid pool size between 1 and ' + players.length);
+  //   }
+  // };
+
+  const increasePoolSize = () => {
+    if (poolSize + 3 <= players.length) {
+      setPoolSize(poolSize + 3);
+      setError(null);
     } else {
-      setError('Please enter a valid pool size between 1 and ' + players.length);
+      setError('Cannot exceed maximum player pool size of ' + players.length);
+    }
+  };
+
+  const decreasePoolSize = () => {
+    if (poolSize - 3 >= 3) {
+      setPoolSize(poolSize - 3);
+      setError(null);
+    } else {
+      setError('Pool size cannot be less than 3.');
     }
   };
 
@@ -37,24 +55,52 @@ const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTi
       setError('Please enter a valid pool size between 1 and ' + players.length);
     }
   };
+  const increaseBidTime = () => {
+    if (configTime + 1 <= 20) {
+      setConfigTime(configTime + 1);
+      setError(null);
+    } else {
+      setError('Bid time cannot exceed 20 seconds.');
+    }
+  };
+
+  const decreaseBidTime = () => {
+    if (configTime - 1 >= 3) {
+      setConfigTime(configTime - 1);
+      setError(null);
+    } else {
+      setError('Bid time cannot be less than 3 seconds.');
+    }
+  };
 
   return (
     <div className="configure-player-list">
       <h1 className="title">Configure Player List</h1>
       <div className="pool-size-container">
         <label>Set Pool Size (max {players.length}): </label>
-        <input
+        <div className="selected-pool-size">{poolSize}</div>
+        {/* <input
           type="number"
           value={inputValue} // Use inputValue instead of poolSize
           onChange={handlePoolSizeChange} // Correct event handling
           min="1"
           max={players.length} // Ensure the input respects the maximum pool size based on available players
           className="pool-size-input"
-        />
+        /> */}
+         <div className="adjuster-buttons">
+        <button onClick={decreasePoolSize} disabled={poolSize <= 3}>
+          Decrease Pool Size
+        </button>
+
+        <button onClick={increasePoolSize} disabled={poolSize >= players.length}>
+          Increase Pool Size
+        </button>
+      </div>
         {error && <div className="error-message">{error}</div>}
         
       </div>
-      <div className="time-container">
+
+      {/* <div className="time-container">
         <label>Set Bid Time (Default 10): </label>
         <input
           type="number"
@@ -64,6 +110,19 @@ const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTi
           max="20" // Ensure the input respects the maximum bid time
           className="pool-size-input"
         />
+        {error && <div className="error-message">{error}</div>}
+      </div> */}
+<div className="time-container">
+        <label>Set Bid Time (Default 10 seconds): </label>
+        <div className="selected-time">{configTime}s</div>
+        <div className="adjuster-buttons">
+          <button onClick={decreaseBidTime} disabled={configTime <= 3}>
+            Decrease Bid Time
+          </button>
+          <button onClick={increaseBidTime} disabled={configTime >= 20}>
+            Increase Bid Time
+          </button>
+        </div>
         {error && <div className="error-message">{error}</div>}
       </div>
         <button className="ok-btn" onClick={handleOk}>OK</button>

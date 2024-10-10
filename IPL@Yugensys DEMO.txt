@@ -1,0 +1,26 @@
+IPL@Yugensys DEMO
+
+Date: 10 October 2024
+
+Functionalities:
+
+1) Data persistence  (MySQL db -> to persist Auction instances)
+2) Configurable player data 
+3) Configurable poolSize
+4) Configurable Bid timer
+5) View History of Auctions 
+6) Better UI/UX since previous versions.
+7) Added instruction panel
+8) Auto Assign Last Player
+9) Chit system mechanism when owners reaching the MaximumBid  
+10)Automatic rounding of poolSize to a perfect multiple of 3 (ie: number of owners) for equal no. of players in team.
+
+
+
+Follow up:
+1) Instant raise number of poolSize
+2) remove crossed line on current highest bid
+3) Show number of Unbidded Players
+4) Do not make continuous fetch in App.jsx
+5) Slab config
+6) make data persist Even after Refresh
