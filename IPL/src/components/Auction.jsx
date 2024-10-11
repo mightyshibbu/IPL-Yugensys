@@ -160,30 +160,22 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
   const slabDetails = slabs[currentPlayer.PSlab];
 
   const slabMaxSize = (poolSize) => {
-    return poolSize <= 8
-      ? {
-          A: 3,
-          B: 3,
-          C: 3,
-          D: 3,
-          E: 1,
-        }
-      : poolSize <= 16
-      ? {
-          A: 2,
-          B: 2,
-          C: 2,
-          D: 1,
-          E: 1,
-        }
-      : {
-          A: 6,
-          B: 6,
-          C: 6,
-          D: 3,
-          E: 3,
-        };
+    const distribution = { A: 0, B: 0, C: 0, D: 0, E: 0 };
+    const keys = ["A", "B", "C", "D", "E"];
+    let remainingPoolSize = poolSize;
+    for (let i = 0; i < keys.length && remainingPoolSize > 0; i++) {
+      const allocation = Math.min(2, Math.floor(remainingPoolSize / 3));
+      distribution[keys[i]] += allocation;
+      remainingPoolSize -= allocation * 3;
+    }
+    for (let i = 0; i < keys.length && remainingPoolSize > 0; i++) {
+      const allocation = Math.min(remainingPoolSize, 1);
+      distribution[keys[i]] += allocation;
+      remainingPoolSize -= allocation;
+    }
+    return distribution;
   };
+
   const autoAssign = (ownerId) => {
     console.log("Owner with the lowest no. of players:", ownerId);
     console.log(
