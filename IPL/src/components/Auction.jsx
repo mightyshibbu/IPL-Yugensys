@@ -14,43 +14,65 @@ import img10 from "../static/img10.jpg";
 
 const images = [img1, img2, img3, img4, img5, img6, img7, img8, img9];
 
-const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
+const Auction = ({  players,  poolSize,  setPoolSize,  configTime,  slabs,  totalOwners,  numSlabs,}) => {
+  
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
+  const [slabDetails, setSlabDetails] = useState({
+    name: "DEFAULT SLAB",
+    basePrice: 9999,
+    maxBid: 9999,
+  });
+
   const [playersList, setPlayersList] = useState(players.slice(0, poolSize));
+  
+  const currentPlayer = playersList[currentPlayerIndex]
+    ? playersList[currentPlayerIndex]
+    : {
+        PID: 9999,
+        PName: "",
+        PAge: 0,
+        PHeight: "",
+        PWeight: "",
+        PRole: "",
+        PSlab: "DEFAULT",
+      };
   const [highestBid, setHighestBid] = useState(
     playersList[currentPlayerIndex]?.minimumBid || 0
   );
   const [highestBidder, setHighestBidder] = useState(null);
+
   const [unbiddedPlayersQueue, setUnbiddedPlayersQueue] = useState([
     ...playersList,
   ]);
-  const getPlayerImage = (playerIndex) => {
-    // Use modulo to repeat the images for players beyond the 6th
-    if (currentPlayer.PID == 9999) {
-      return img10;
-    }
-    return images[playerIndex % images.length];
-  };
   const [timer, setTimer] = useState(configTime);
-  const [owners, setOwners] = useState([
-    { id: 1, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
-    { id: 2, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
-    { id: 3, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
-  ]);
+
+  const [owners, setOwners] = useState(Array.from({ length: totalOwners }, (_, index) => ({
+    id: index + 1,
+    unitsLeft: 2500,
+    purchasedPlayers: [],
+    slabPlayers: {},
+  })));
+
   const [ownersWithMaxBid, setOwnersWithMaxBid] = useState([]);
+
   const [isStarted, setIsStarted] = useState(false);
+
   const [isStopped, setIsStopped] = useState(false);
+
   const navigate = useNavigate();
 
-  const slabs = {
-    A: { basePrice: 200, maxBid: 800 },
-    B: { basePrice: 150, maxBid: 800 },
-    C: { basePrice: 100, maxBid: 700 },
-    D: { basePrice: 80, maxBid: 700 },
-    E: { basePrice: 50, maxBid: 400 },
-  };
+  let numberOfPlayersLeft = playersList.filter((player) => player !== 0).length;
+  // Map PSlab to slabs by name
+  const slabMapping = slabs.reduce((map, slab, index) => {
+    const slabLetter = String.fromCharCode(65 + index); // Generate "A", "B", etc.
+    map[slabLetter] = slab;
+    return map;
+  }, {});
+
   useEffect(() => {
     const savedAuctionData = localStorage.getItem("auctionData");
+    console.log("totalOwners: ",totalOwners);
+    console.log("slab details: ", slabs);
 
     if (savedAuctionData) {
       const {
@@ -64,23 +86,13 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
         timer: savedTimer,
         isStarted: savedIsStarted, // Add this to check if auction was started
       } = JSON.parse(savedAuctionData);
-      console.log("OWNER FROM LOCALSTORAGE:",owners)
+      console.log("OWNER FROM LOCALSTORAGE:", owners);
       setIsStarted(savedIsStarted || false); // Check if the auction was started before
 
       setPlayersList(savedPlayersList || players.slice(0, poolSize));
       setOwners(
-        savedOwners || [
-          { id: 1, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
-          { id: 2, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
-          { id: 3, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
-        ]
+        savedOwners || createInitialOwners(totalOwners)
       );
-      // setHighestBid(
-      //   savedHighestBid ||
-      //     savedPlayersList[savedCurrentPlayerIndex]?.minimumBid ||
-      //     0
-      // );
-      // setHighestBidder(savedHighestBidder || null);
       setUnbiddedPlayersQueue(
         savedUnbiddedPlayersQueue || [...savedPlayersList]
       );
@@ -96,11 +108,7 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
       }
     } else {
       setPlayersList(players.slice(0, poolSize));
-      setOwners([
-        { id: 1, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
-        { id: 2, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
-        { id: 3, unitsLeft: 2500, purchasedPlayers: [], slabPlayers: {} },
-      ]);
+      setOwners(createInitialOwners(totalOwners));
       setHighestBid(0);
       setHighestBidder(null);
       setUnbiddedPlayersQueue([...players.slice(0, poolSize)]);
@@ -110,6 +118,14 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
     }
   }, [poolSize, players]);
 
+  const createInitialOwners = (numOwners) => {
+    return Array.from({ length: numOwners }, (_, index) => ({
+      id: index + 1,
+      unitsLeft: 2500,
+      purchasedPlayers: [],
+      slabPlayers: {},
+    }));
+  };
   useEffect(() => {
     if (isStarted && !isStopped) {
       if (timer === 0) {
@@ -122,67 +138,108 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
       }
     }
   }, [timer, isStarted, isStopped]);
-  let numberOfPlayersLeft = playersList.filter((player) => player !== 0).length;
+
   useEffect(() => {
+    if (!currentPlayer || !currentPlayer.PSlab) {
+      console.error(
+        "currentPlayer or currentPlayer.PSlab is not initialized yet."
+      );
+      return;
+    }
+
+    // Get slab details using the function
+    const slabDetails = getSlabDetails(currentPlayer.PSlab, slabs);
+    console.log("useEffect currentPlayer.PSlab:", currentPlayer.PSlab);
+    console.log("useEffect slabs[slabIndex]:", slabDetails);
+
+    // Update slab details and highest bid
+    setSlabDetails(slabDetails);
     setHighestBid(currentPlayer.minimumBid || slabDetails.basePrice);
-    let numberOfPlayersLeft = playersList.filter(
-      (player) => player !== 0
-    ).length;
-    console.log("Number of Players Left: ", numberOfPlayersLeft);
-    if (numberOfPlayersLeft === 1) {
-      console.log("reached here");
-      let lowest = Infinity;
-      let ownerIndex = -1;
-      for (let i = 0; i < owners.length; i++) {
-        if (owners[i].purchasedPlayers.length < lowest) {
-          lowest = owners[i].purchasedPlayers.length;
-          ownerIndex = i;
+  }, [currentPlayerIndex, currentPlayer, slabs]);
+  // Function to get slab details based on current player's slab
+  const getSlabDetails = (playerSlab, slabs) => {
+    // Default slab if no matching slab is found
+    const defaultSlab = {
+      name: "DEFAULT",
+      basePrice: 9999,
+      maxBid: 9999,
+    };
+
+    if (!playerSlab || !slabs || slabs.length === 0) {
+      return defaultSlab; // Return default if slabs array is empty or player slab is not defined
+    }
+
+    const slabMapping = {
+      A: 0,
+      B: 1,
+      C: 2,
+      D: 3,
+      E: 4, // Slab mappings
+    };
+
+    const slabIndex = slabMapping[playerSlab];
+
+    // Return the corresponding slab or default slab if the index is invalid
+    return slabs[slabIndex] || defaultSlab;
+  };
+
+  useEffect(() => {
+    console.log("Current Player:", currentPlayer);
+    console.log("Current Slab Mapping:", currentPlayer.PSlab);
+    // Rest of the logic
+  }, [currentPlayer, currentPlayerIndex]);
+
+  const getPlayerImage = (playerIndex) => {
+    // Use modulo to repeat the images for players beyond the 6th
+    if (currentPlayer.PID == 9999) {
+      return img10;
+    }
+    return images[playerIndex % images.length];
+  };
+
+  const slabMaxSize = (poolSize, numSlabs, totalOwners) => {
+    const distribution = {};
+    const slabNames = slabs.map((slab) => slab.name); // Define your slab names
+    const playersPerSlab = Math.floor(poolSize / 6); // Players per slab based on the fixed sequence
+    const remainingPlayers = poolSize % 6; // Remaining players after filling up to multiples of 6
+
+    // Initialize the distribution for each slab based on the number of players
+    slabNames.forEach((name, index) => {
+      if (index < numSlabs) {
+        distribution[name] = playersPerSlab; // Each slab gets the base allocation
+        if (index === 0) {
+          distribution[name] += 6; // Slab A always gets the first 6 players
+        } else if (index === 1 && remainingPlayers > 0) {
+          distribution[name] += remainingPlayers; // Slab B gets any remaining players
         }
       }
-      if (ownerIndex !== -1) {
-        console.log("reached here 222");
-        autoAssign(ownerIndex + 1);
+    });
+
+    // Determine max allocation per owner for each slab
+    const maxAllocations = {};
+    slabNames.forEach((name) => {
+      if (distribution[name] > 0) {
+        maxAllocations[name] = Math.floor(distribution[name] / totalOwners); // Maximum players per owner from this slab
       }
-    }
-  }, [currentPlayerIndex]);
-  const currentPlayer = playersList[currentPlayerIndex]
-    ? playersList[currentPlayerIndex]
-    : {
-        PID: 9999,
-        PName: "",
-        PAge: 0,
-        PHeight: "",
-        PWeight: "",
-        PRole: "",
-        PSlab: "A",
-      };
+    });
 
-  const slabDetails = slabs[currentPlayer.PSlab];
+    console.log("Distribution of players per slab:", distribution);
+    console.log("Max allocation per owner from each slab:", maxAllocations);
 
-  const slabMaxSize = (poolSize) => {
-    const distribution = { A: 0, B: 0, C: 0, D: 0, E: 0 };
-    const keys = ["A", "B", "C", "D", "E"];
-    let remainingPoolSize = poolSize;
-    for (let i = 0; i < keys.length && remainingPoolSize > 0; i++) {
-      const allocation = Math.min(2, Math.floor(remainingPoolSize / 3));
-      distribution[keys[i]] += allocation;
-      remainingPoolSize -= allocation * 3;
-    }
-    for (let i = 0; i < keys.length && remainingPoolSize > 0; i++) {
-      const allocation = Math.min(remainingPoolSize, 1);
-      distribution[keys[i]] += allocation;
-      remainingPoolSize -= allocation;
-    }
-    return distribution;
+    return maxAllocations;
   };
 
   const autoAssign = (ownerId) => {
+    if (!slabDetails) {
+      console.error("Invalid slab:", currentPlayer.PSlab);
+      return;
+    }
+
     console.log("Owner with the lowest no. of players:", ownerId);
-    console.log(
-      "reached here 333 , Players Base Price:",
-      slabs[currentPlayer.PSlab].basePrice
-    );
-    handleBidClick(ownerId, slabs[currentPlayer.PSlab].basePrice + 100);
+    console.log("Reached here 333, Players Base Price:", slabDetails.basePrice);
+
+    // Use the base price of the slab and add 100 to handleBidClick
+    handleBidClick(ownerId, slabDetails.basePrice + 100);
   };
 
   const resetAuction = () => {
@@ -197,17 +254,20 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
         const owner = owners.find((o) => o.id === ownerId);
         console.log("Bidder Owner", owner.id);
 
+        if (!slabDetails) {
+          console.error("Invalid slab:", currentSlabName);
+          return;
+        }
+
+        const cur_maxBid = slabDetails.maxBid;
+        console.log("Slab:", slabDetails.name);
+        console.log("cur_maxBid:", cur_maxBid);
+
         if (
           owner.unitsLeft >= bidValue &&
           bidValue >= highestBid &&
           owner !== highestBidder
         ) {
-          const cur_slab = currentPlayer.PSlab;
-
-          const cur_maxBid = slabs[cur_slab].maxBid;
-          console.log("cur_slab:", cur_slab);
-          console.log("cur_maxBid:", cur_maxBid);
-
           if (bidValue === cur_maxBid) {
             setOwnersWithMaxBid((prev) => {
               const updatedOwners = [...prev, owner];
@@ -215,7 +275,6 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
 
               const random_owner =
                 updatedOwners[Math.floor(Math.random() * updatedOwners.length)];
-
               console.log("This time Random Owner:", random_owner.id);
 
               setHighestBid(bidValue);
@@ -243,6 +302,7 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
     },
     [highestBid, isStopped, owners, setHighestBidder, setTimer, setOwners]
   );
+
   const ifFullyFilled = (ownerID) => {
     const owner = owners.find((o) => o.id === ownerID);
     if (!owner) return false; // Handle case where owner is not found
@@ -250,153 +310,104 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
     return totalPurchased < poolSize / 3 ? true : false;
   };
 
-  // const makeBid = (ownerId) => {
-  //   if (!isStopped) {
-  //     const owner = owners.find((o) => o.id === ownerId);
-  //     const slabPlayers = owner.slabPlayers[currentPlayer.PSlab] || [];
-
-  //     // Call slabMaxSize with the appropriate pool size (replace `poolSize` with the actual value)
-  //     const currentSlabMaxSize = slabMaxSize(poolSize);
-  //     console.log("Current SlabMax:", currentSlabMaxSize);
-
-  //     if (slabPlayers.length < currentSlabMaxSize[currentPlayer.PSlab]) {
-
-  //       slabPlayers.push(currentPlayer.PName);
-  //       owner.purchasedPlayers.push(currentPlayer.PName);
-
-  //       setOwners(
-  //         owners.map((o) => {
-  //           if (o.id === ownerId) {
-  //             return {
-  //               ...o,
-  //               unitsLeft: o.unitsLeft - highestBid,
-  //               slabPlayers: {
-  //                 ...o.slabPlayers,
-  //                 [currentPlayer.PSlab]: slabPlayers,
-  //               },
-  //             };
-  //           }
-  //           return o;
-  //         })
-  //       );
-  //       console.log("Owners set in LOCALSTORAGE:",owners)
-  //       // Immediately remove the purchased player from both lists
-  //       const updatedUnbiddedPlayersQueue = unbiddedPlayersQueue.filter(
-  //         (player) => player.PID !== currentPlayer.PID
-  //       );
-  //       const updatedPlayersList = playersList.map((player, index) =>
-  //         index === currentPlayerIndex ? 0 : player
-  //       );
-
-  //       setUnbiddedPlayersQueue(updatedUnbiddedPlayersQueue);
-  //       setPlayersList(updatedPlayersList);
-  //       console.log("updatedPlayersList after player sell" , updatedPlayersList);
-        
-  //       // Save updated auction state to localStorage
-
-  //       localStorage.setItem(
-  //         "auctionData",
-  //         JSON.stringify({
-  //           playersList: updatedPlayersList,
-  //           currentPlayerIndex: currentPlayerIndex + 1, // move to the next player
-  //           owners,
-  //           highestBid,
-  //           highestBidder,
-  //           poolSize,
-  //           unbiddedPlayersQueue: updatedUnbiddedPlayersQueue,
-  //           timer,
-  //         })
-  //       );
-  //     } else {
-  //       alert(
-  //         `Owner ${owner.id} cannot purchase more players from ${currentPlayer.PSlab}`
-  //       );
-  //     }
-  //   }
-  // };
   const makeBid = (ownerId) => {
     if (!isStopped) {
-        const owner = owners.find((o) => o.id === ownerId);
-        const slabPlayers = owner.slabPlayers[currentPlayer.PSlab] || [];
+      const owner = owners.find((o) => o.id === ownerId);
 
-        // Call slabMaxSize with the appropriate pool size
-        const currentSlabMaxSize = slabMaxSize(poolSize);
-        console.log("Current SlabMax:", currentSlabMaxSize);
+      if (!slabDetails) {
+        console.error("Invalid slab:", currentSlabName);
+        return;
+      }
 
-        if (slabPlayers.length < currentSlabMaxSize[currentPlayer.PSlab]) {
-            // Create new arrays to avoid mutating the original state
-            const updatedSlabPlayers = [...slabPlayers, currentPlayer.PName];
-            const updatedPurchasedPlayers = [...owner.purchasedPlayers, currentPlayer.PName];
+      // Get slab max size based on pool size and total owners
+      const currentSlabMaxSize = slabMaxSize(poolSize, numSlabs, totalOwners); // poolSize=9 , numSlabs=2 , owners=3
+      const slabPlayers = owner.slabPlayers[slabDetails.name] || [];
 
-            // Update the owners' state
-            setOwners(
-                owners.map((o) => {
-                    if (o.id === ownerId) {
-                        return {
-                            ...o,
-                            unitsLeft: o.unitsLeft - highestBid, // Update unitsLeft here
-                            slabPlayers: {
-                                ...o.slabPlayers,
-                                [currentPlayer.PSlab]: updatedSlabPlayers,
-                            },
-                            purchasedPlayers: updatedPurchasedPlayers, // Ensure updated purchasedPlayers
-                        };
-                    }
-                    return o;
-                })
-            );
+      console.log("slabPlayers.length:", slabPlayers.length);
+      console.log("slabDetails.name:", slabDetails.name);
+      console.log(
+        "currentSlabMaxSize[slabDetails.name]:",
+        currentSlabMaxSize[slabDetails.name]
+      );
+      console.log("currentSlabMaxSize:", currentSlabMaxSize);
 
-            // Log the updated owners state after setting it
-            const updatedOwners = owners.map((o) => {
-                if (o.id === ownerId) {
-                    return {
-                        ...o,
-                        unitsLeft: o.unitsLeft - highestBid,
-                        slabPlayers: {
-                            ...o.slabPlayers,
-                            [currentPlayer.PSlab]: updatedSlabPlayers,
-                        },
-                        purchasedPlayers: updatedPurchasedPlayers,
-                    };
-                }
-                return o;
-            });
-            console.log("Owners set in LOCALSTORAGE:", updatedOwners); // Log updated owners
+      // Check if the number of players in this slab is less than the maximum size allowed
+      if (slabPlayers.length < currentSlabMaxSize[slabDetails.name]) {
+        const updatedSlabPlayers = [...slabPlayers, currentPlayer.PName];
+        const updatedPurchasedPlayers = [
+          ...owner.purchasedPlayers,
+          currentPlayer.PName,
+        ];
 
-            // Immediately remove the purchased player from both lists
-            const updatedUnbiddedPlayersQueue = unbiddedPlayersQueue.filter(
-                (player) => player.PID !== currentPlayer.PID
-            );
+        // Update the owners' state
+        setOwners(
+          owners.map((o) => {
+            if (o.id === ownerId) {
+              return {
+                ...o,
+                unitsLeft: o.unitsLeft - highestBid,
+                slabPlayers: {
+                  ...o.slabPlayers,
+                  [slabDetails.name]: updatedSlabPlayers, // Use new slab names here
+                },
+                purchasedPlayers: updatedPurchasedPlayers,
+              };
+            }
+            return o;
+          })
+        );
 
-            const updatedPlayersList = playersList.map((player, index) =>
-                index === currentPlayerIndex ? 0 : player
-            );
+        // Log updated state
+        const updatedOwners = owners.map((o) => {
+          if (o.id === ownerId) {
+            return {
+              ...o,
+              unitsLeft: o.unitsLeft - highestBid,
+              slabPlayers: {
+                ...o.slabPlayers,
+                [slabDetails.name]: updatedSlabPlayers,
+              },
+              purchasedPlayers: updatedPurchasedPlayers,
+            };
+          }
+          return o;
+        });
 
-            setUnbiddedPlayersQueue(updatedUnbiddedPlayersQueue);
-            setPlayersList(updatedPlayersList);
-            console.log("updatedPlayersList after player sell", updatedPlayersList);
+        console.log("Owners set in LOCALSTORAGE:", updatedOwners);
 
-            // Save updated auction state to localStorage
-            localStorage.setItem(
-                "auctionData",
-                JSON.stringify({
-                    playersList: updatedPlayersList,
-                    currentPlayerIndex: currentPlayerIndex + 1, // move to the next player
-                    owners: updatedOwners, // Use updated owners
-                    highestBid,
-                    highestBidder,
-                    poolSize,
-                    unbiddedPlayersQueue: updatedUnbiddedPlayersQueue,
-                    timer,
-                })
-            );
-        } else {
-            alert(
-                `Owner ${owner.id} cannot purchase more players from ${currentPlayer.PSlab}`
-            );
-        }
+        // Update players queue and list
+        const updatedUnbiddedPlayersQueue = unbiddedPlayersQueue.filter(
+          (player) => player.PID !== currentPlayer.PID
+        );
+        const updatedPlayersList = playersList.map((player, index) =>
+          index === currentPlayerIndex ? 0 : player
+        );
+
+        setUnbiddedPlayersQueue(updatedUnbiddedPlayersQueue);
+        setPlayersList(updatedPlayersList);
+        console.log("updatedPlayersList after player sell", updatedPlayersList);
+
+        // Save updated auction state to localStorage
+        localStorage.setItem(
+          "auctionData",
+          JSON.stringify({
+            playersList: updatedPlayersList,
+            currentPlayerIndex: currentPlayerIndex + 1,
+            owners: updatedOwners,
+            highestBid,
+            highestBidder,
+            poolSize,
+            unbiddedPlayersQueue: updatedUnbiddedPlayersQueue,
+            timer,
+          })
+        );
+      } else {
+        alert(
+          `Owner ${owner.id} cannot purchase more players from ${slabDetails.name} slab`
+        );
+      }
     }
-};
+  };
 
   const saveAuctionData = async (auctionData) => {
     try {
@@ -423,24 +434,54 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
     console.log("Auction completed!");
     alert("Auction completed!");
 
+    console.log("slabs in displayResult", slabs);
+
+    // Create a mapping of slabs based on the new structure
+    const slabMapping = slabs.reduce((acc, slab, index) => {
+      acc[slab.name] = index; // Map slab names to their respective index
+      return acc;
+    }, {});
+
+    console.log("slabMapping in displayResult: ", slabMapping);
+
+    // Prepare the auction data
     const auctionData = {
-      owners: owners.map((owner) => ({
-        id: owner.id,
-        unitsLeft: owner.unitsLeft,
-        slabPlayers: {
-          A: owner.slabPlayers.A || [],
-          B: owner.slabPlayers.B || [],
-          C: owner.slabPlayers.C || [],
-          D: owner.slabPlayers.D || [],
-          E: owner.slabPlayers.E || [],
-        },
-        purchasedPlayers: owner.purchasedPlayers.map((player) => ({
-          name: player.name,
-          slab: player.slab,
-          playerId: player.playerId,
-        })),
-      })),
+      owners: owners.map((owner) => {
+        const slabPlayers = {};
+
+        // Iterate through each slab using the new slab names
+        for (const slabName of Object.keys(slabMapping)) {
+          const playersInSlab = owner.slabPlayers[slabName] || []; // Access players based on new slab names
+
+          // Only include slabs that have players or set "No Players"
+          if (playersInSlab.length > 0) {
+            slabPlayers[slabName] = playersInSlab;
+          } else {
+            slabPlayers[slabName] = "No Players";
+          }
+        }
+
+        return {
+          id: owner.id,
+          unitsLeft: owner.unitsLeft,
+          slabPlayers: slabPlayers,
+          purchasedPlayers: owner.purchasedPlayers.map((player) => ({
+            name: player.name,
+            slab: player.slab, // Ensure the player's slab is saved using the correct name
+            playerId: player.playerId,
+          })),
+        };
+      }),
     };
+
+    // Remove slabs that have "No Players" from the auction data
+    auctionData.owners.forEach((owner) => {
+      owner.slabPlayers = Object.fromEntries(
+        Object.entries(owner.slabPlayers).filter(
+          ([slab, players]) => players !== "No Players"
+        )
+      );
+    });
 
     try {
       await saveAuctionData(auctionData);
@@ -448,7 +489,6 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
       console.log("Auction data saved successfully!");
 
       navigate("/previousAuctions", { replace: true });
-      // Clear saved data
     } catch (error) {
       console.error("Error saving auction data:", error);
     }
@@ -469,8 +509,14 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
 
       if (nextNonZeroIndex !== -1) {
         setCurrentPlayerIndex(nextNonZeroIndex);
-        console.log("moveToNextNonZeroPlayer -> nextNonZeroIndex: ", nextNonZeroIndex);
-        console.log("moveToNextNonZeroPlayer -> currentplayerIndex", currentPlayerIndex);
+        console.log(
+          "moveToNextNonZeroPlayer -> nextNonZeroIndex: ",
+          nextNonZeroIndex
+        );
+        console.log(
+          "moveToNextNonZeroPlayer -> currentplayerIndex",
+          currentPlayerIndex
+        );
       } else {
         console.log("No more valid players left.");
         setIsStarted(false);
@@ -502,25 +548,6 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
         currentPlayerIndex
       );
       moveToNextNonZeroPlayer();
-      // Save auction state after each assignment
-      // console.log(
-      //   "IIMEDIATE CurrentPlayerIndex before localStorage",
-      //   currentPlayerIndex
-      // );
-      // localStorage.setItem(
-      //   "auctionData",
-      //   JSON.stringify({
-      //     playersList,
-      //     currentPlayerIndex,
-      //     owners,
-      //     highestBid,
-      //     highestBidder,
-      //     poolSize,
-      //     unbiddedPlayersQueue,
-      //     timer,
-      //   })
-      // );
-
       resetAuction(); // Reset for the next player
     }
   };
@@ -564,7 +591,7 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
             alt="Player"
             style={{ width: "240px", height: "240px", objectFit: "cover" }}
           />
-          <div className="slab">Slab: {currentPlayer.PSlab}</div>
+          <div className="slab">Slab: {slabDetails.name}</div>
           <div className="bid-info">
             <div>MIN: {slabDetails.basePrice}</div>
             <div>MAX: {slabDetails.maxBid}</div>
@@ -575,9 +602,9 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
           <div>Height: {currentPlayer.PHeight}</div>
           <div>Weight: {currentPlayer.PWeight}</div>
           <div>Role: {currentPlayer.PRole}</div>
-        <div className="unbidded-players-count">
-          Remaining unbidded players: {numberOfPlayersLeft}
-        </div>
+          <div className="unbidded-players-count">
+            Remaining unbidded players: {numberOfPlayersLeft}
+          </div>
         </div>
         <div style={{ flexGrow: 1, marginLeft: "20px" }}>
           <div className="bid-info">
@@ -586,6 +613,8 @@ const Auction = ({ players, poolSize, setPoolSize, configTime }) => {
               Highest Bidder: {highestBidder ? highestBidder.id : "None"}
             </div>
             <div>Pool Size: {poolSize}</div>
+            <div>Owners: {totalOwners}</div>
+            <div>Slabs: {numSlabs}</div>
             <div className={`timer ${isStarted ? "glow" : ""}`}>
               {timer} seconds
             </div>

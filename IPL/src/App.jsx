@@ -7,10 +7,12 @@ import EditPlayer from './components/EditPlayer';
 import PreviousAuctions from './components/PreviousAuctions'
 
 function App() {
-  const [poolSize, setPoolSize] = useState(3);
-  const [configTime, setConfigTime] = useState(10);
+  const [poolSize, setPoolSize] = useState(9);
+  const [configTime, setConfigTime] = useState(180);
   const [players, setPlayers] = useState([]);
-
+  const [totalOwners, setTotalOwners] = useState(3);
+  const [numSlabs, setNumSlabs] = useState(2); // Default number of slabs
+  const [slabs, setSlabs] = useState([]); // Holds dynamically configured slab data
   // Fetch players data from the API when the component mounts
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -25,17 +27,18 @@ function App() {
         console.error('Error fetching players:', error);
       }
     };
-
+    // localStorage.getItem("poolSize")?setPoolSize(localStorage.getItem("poolSize")): localStorage.setItem("poolSize",poolSize);
+    // localStorage.getItem("configTime")?setPoolSize(localStorage.getItem("configTime")): localStorage.setItem("configTime",configTime);
     fetchPlayers();
   },[]);
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomePage poolSize={poolSize} configTime={configTime} />} />
+        <Route path="/" element={<HomePage poolSize={poolSize} configTime={configTime} totalOwners={totalOwners} numSlabs={numSlabs} />} />
         <Route path="/edit-player/:id" element={<EditPlayer />} />
-        <Route path="/config" element={<Configuration players={players} poolSize={poolSize} setPoolSize={setPoolSize} configTime={configTime} setConfigTime={setConfigTime} />} />
-        <Route path="/auction" element={<Auction players={players} setPoolSize={setPoolSize} poolSize={poolSize} configTime={configTime} />} />
+        <Route path="/config" element={<Configuration players={players} numSlabs={numSlabs} setNumSlabs={setNumSlabs} poolSize={poolSize} totalOwners={totalOwners} setTotalOwners={setTotalOwners} setPoolSize={setPoolSize} configTime={configTime} setConfigTime={setConfigTime} setSlabs={setSlabs} slabs={slabs}  />} />
+        <Route path="/auction" element={<Auction players={players} setPoolSize={setPoolSize} poolSize={poolSize} configTime={configTime} slabs={slabs} totalOwners={totalOwners} numSlabs={numSlabs}/>} />
         <Route path="/previousAuctions" element={<PreviousAuctions players={players} poolSize={poolSize} configTime={configTime} />} />
       </Routes>
     </BrowserRouter>

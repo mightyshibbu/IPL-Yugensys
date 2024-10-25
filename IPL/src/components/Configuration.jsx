@@ -1,32 +1,59 @@
-import React, { useState } from 'react';
-import '../styles/Configuration.css'; // You can add styles here
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
-const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTime }) => {
+import React, { useState } from "react";
+import "../styles/Configuration.css"; // You can add styles here
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+const Configuration = ({
+  players,
+  poolSize,
+  setPoolSize,
+  configTime,
+  setConfigTime,
+  numSlabs,
+  setNumSlabs,
+  setSlabs,
+  totalOwners,
+  setTotalOwners,
+}) => {
   const navigate = useNavigate();
 
   const [error, setError] = useState(null);
-  const [inputValue, setInputValue] = useState(poolSize);
-
-  // const handlePoolSizeChange = (event) => {
-  //   const newSize = Number(event.target.value);
-  //   setInputValue(newSize);
-  //   const roundedSize = Math.round(newSize / 3) * 3; // Round to nearest multiple of 3
-  //   if (roundedSize >= 1 && roundedSize <= players.length) {
-  //     setPoolSize(roundedSize); // Update only if within valid range
-  //     setError(null); // Clear any previous error
-  //   } else {
-  //     setError('Please enter a valid pool size between 1 and ' + players.length);
-  //   }
-  // };
+  const [minBid, setMinBid] = useState(50); // Default minimum bid
+  const [maxBid, setMaxBid] = useState(400); // Default maximum bid
+  const [slabsConfig, setSlabsConfig] = useState([]);
 
   const increasePoolSize = () => {
     if (poolSize + 3 <= players.length) {
       setPoolSize(poolSize + 3);
       setError(null);
     } else {
-      setError('Cannot exceed maximum player pool size of ' + players.length);
+      setError("Cannot exceed maximum player pool size of " + players.length);
     }
+  };
+  const handleGenerateSlabs = () => {
+    const initialSlabs = Array.from({ length: numSlabs }, (_, index) => {
+      let name;
+      if (index === 0) {
+        name = "Marquee"; // First slab name
+      } else if (index === numSlabs - 1) {
+        name = "Impact"; // Last slab name
+      } else {
+        name = String.fromCharCode(64 + index); // Generate names A, B, C, etc. for middle slabs
+      }
+  
+      return {
+        name, // Set the name based on index
+        basePrice: 50, // Default min bid
+        maxBid: 400, // Default max bid
+      };
+    });
+  
+    setSlabsConfig(initialSlabs); // Set the initial slab config
+  };
+  
+  const handleSlabChange = (index, field, value) => {
+    const updatedSlabs = [...slabsConfig];
+    updatedSlabs[index][field] = value;
+    setSlabsConfig(updatedSlabs); // Update the specific slab configuration
   };
 
   const decreasePoolSize = () => {
@@ -34,33 +61,39 @@ const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTi
       setPoolSize(poolSize - 3);
       setError(null);
     } else {
-      setError('Pool size cannot be less than 3.');
+      setError("Pool size cannot be less than 3.");
     }
   };
 
   const handleTimeChange = (event) => {
     const newTime = Number(event.target.value);
-    if (newTime >= 3 && newTime <= 20) { // Add validation for bid time
+    if (newTime >= 3 && newTime <= 20) {
+      // Add validation for bid time
       setConfigTime(newTime);
       setError(null); // Clear any previous error
     } else {
-      setError('Please enter a valid bid time between 3 and 20 seconds.');
+      setError("Please enter a valid bid time between 3 and 20 seconds.");
     }
   };
 
   const handleOk = () => {
-    if (poolSize >= 1 && poolSize <= players.length) {  
+    if (poolSize >= 1 && poolSize <= players.length) {
+      setSlabs(slabsConfig); // Pass the configured slabs to the parent
+      console.log("slab details:", slabsConfig);
       navigate("/", { replace: true });
     } else {
-      setError('Please enter a valid pool size between 1 and ' + players.length);
+      setError(
+        "Please enter a valid pool size between 1 and " + players.length
+      );
     }
   };
+
   const increaseBidTime = () => {
     if (configTime + 1 <= 20) {
       setConfigTime(configTime + 1);
       setError(null);
     } else {
-      setError('Bid time cannot exceed 20 seconds.');
+      setError("Bid time cannot exceed 20 seconds.");
     }
   };
 
@@ -69,7 +102,7 @@ const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTi
       setConfigTime(configTime - 1);
       setError(null);
     } else {
-      setError('Bid time cannot be less than 3 seconds.');
+      setError("Bid time cannot be less than 3 seconds.");
     }
   };
 
@@ -79,40 +112,22 @@ const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTi
       <div className="pool-size-container">
         <label>Set Pool Size (max {players.length}): </label>
         <div className="selected-pool-size">{poolSize}</div>
-        {/* <input
-          type="number"
-          value={inputValue} // Use inputValue instead of poolSize
-          onChange={handlePoolSizeChange} // Correct event handling
-          min="1"
-          max={players.length} // Ensure the input respects the maximum pool size based on available players
-          className="pool-size-input"
-        /> */}
-         <div className="adjuster-buttons">
-        <button onClick={decreasePoolSize} disabled={poolSize <= 3}>
-          Decrease Pool Size
-        </button>
+        <div className="adjuster-buttons">
+          <button onClick={decreasePoolSize} disabled={poolSize <= 3}>
+            Decrease Pool Size
+          </button>
 
-        <button onClick={increasePoolSize} disabled={poolSize >= players.length}>
-          Increase Pool Size
-        </button>
-      </div>
+          <button
+            onClick={increasePoolSize}
+            disabled={poolSize >= players.length}
+          >
+            Increase Pool Size
+          </button>
+        </div>
         {error && <div className="error-message">{error}</div>}
-        
       </div>
 
-      {/* <div className="time-container">
-        <label>Set Bid Time (Default 10): </label>
-        <input
-          type="number"
-          value={configTime} // Use value instead of defaultValue to reflect state changes
-          onChange={handleTimeChange} // Added onChange handler here
-          min="3"
-          max="20" // Ensure the input respects the maximum bid time
-          className="pool-size-input"
-        />
-        {error && <div className="error-message">{error}</div>}
-      </div> */}
-<div className="time-container">
+      <div className="time-container">
         <label>Set Bid Time (Default 10 seconds): </label>
         <div className="selected-time">{configTime}s</div>
         <div className="adjuster-buttons">
@@ -125,7 +140,71 @@ const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTi
         </div>
         {error && <div className="error-message">{error}</div>}
       </div>
-        <button className="ok-btn" onClick={handleOk}>OK</button>
+      <div className="time-container">
+        <label>Set Number of Owners (min 2, max 8): </label>
+        <div className="selected-time">{totalOwners}</div>
+        <div className="adjuster-buttons">
+          <button
+            onClick={() => setTotalOwners((prev) => Math.max(prev - 1, 2))}
+            disabled={totalOwners <= 2}
+          >
+            -1
+          </button>
+          <button
+            onClick={() => setTotalOwners((prev) => Math.min(prev + 1, 8))}
+            disabled={totalOwners >= 8}
+          >
+            +1
+          </button>
+        </div>
+        {error && <div className="error-message">{error}</div>}
+      </div>
+
+      <div className="slab-config-container">
+        <label>Number of Slabs: </label>
+        <input
+          className="selected-pool-size"
+          style={{ marginRight: "30px", marginLeft: "10px" }}
+          type="number"
+          value={numSlabs}
+          onChange={(e) => setNumSlabs(Number(e.target.value))}
+          min={1}
+        />
+        <button onClick={handleGenerateSlabs}>Generate Slabs</button>
+
+        {slabsConfig.map((slab, index) => (
+          <div key={index} className="slab-input-container">
+            <label>Slab Name: </label>
+            <input
+              type="text"
+              value={slab.name}
+              onChange={(e) => handleSlabChange(index, "name", e.target.value)}
+            />
+
+            <label>Min Bid: </label>
+            <input
+              type="number"
+              value={slab.basePrice}
+              onChange={(e) =>
+                handleSlabChange(index, "basePrice", Number(e.target.value))
+              }
+            />
+
+            <label>Max Bid: </label>
+            <input
+              type="number"
+              value={slab.maxBid}
+              onChange={(e) =>
+                handleSlabChange(index, "maxBid", Number(e.target.value))
+              }
+            />
+          </div>
+        ))}
+      </div>
+
+      <button className="ok-btn" onClick={handleOk}>
+        OK
+      </button>
 
       <table className="player-table">
         <thead>
@@ -151,12 +230,14 @@ const Configuration = ({ players, poolSize, setPoolSize, configTime, setConfigTi
               <td>{player.PRole}</td>
               <td>{player.PSlab}</td>
               <td>
-              <div style={{color:"white"}}><Link to={`/edit-player/${player.PID}`}>Edit</Link></div>
+                <div style={{ color: "white" }}>
+                  <Link to={`/edit-player/${player.PID}`}>Edit</Link>
+                </div>
               </td>
             </tr>
           ))}
         </tbody>
-      </ table>
+      </table>
     </div>
   );
 };

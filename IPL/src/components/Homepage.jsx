@@ -3,7 +3,7 @@ import '../styles/Homepage.css'; // Assuming you will style this separately
 import { useNavigate } from 'react-router-dom';
 import waterImage from '../static/water.png';
 import Instructions from './Instructions'
-const HomePage = ({poolSize,configTime}) => {
+const HomePage = ({poolSize,configTime,numSlabs,totalOwners}) => {
   const navigate = useNavigate();
   const [showInstructions, setShowInstructions] = useState(false);
   const handleConfig = () => {
@@ -37,9 +37,10 @@ const HomePage = ({poolSize,configTime}) => {
       <div className="rotating-image-container">
         <img src={waterImage} alt="Water" className="rotating-image" />
       </div>
-      <header className="auction-header">
+      <header className="auction-header" style={{marginBottom:"30px"}}>
         <h1>IPL LIVE AUCTION</h1>
-        <h2>@Yugensys</h2>
+        <h1>v4.1</h1>
+
       </header>
       <div className="button-container">
         <button className="auction-btn" onClick={handleConfig}>Configure</button>
@@ -49,6 +50,8 @@ const HomePage = ({poolSize,configTime}) => {
       <div className="button-container">
         <label className='auction-btn'>Pool Size: {poolSize}</label>
         <label className='auction-btn'>Timer(sec): {configTime}</label>
+        <label className='auction-btn'>Owners: {totalOwners}</label>
+        <label className='auction-btn'>Slabs: {numSlabs}</label>
         </div>
       <div className="button-container">
       <button className="auction-instruction-btn" onClick={handleShowInstructions}>Instructions</button>
