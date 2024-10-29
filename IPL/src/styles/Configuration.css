@@ -1,53 +1,3 @@
-/* .configure-player-list {
-    padding: 20px;
-    text-align: center;
-  }
-  
-  .title {
-    font-size: 24px;
-    color: red;
-    margin-bottom: 20px;
-  }
-  
-  .pool-size-container {
-    margin-bottom: 20px;
-  }
-  
-  .pool-size-input {
-    width: 50px;
-    padding: 5px;
-    margin-right: 10px;
-  }
-  
-  .ok-btn {
-    padding: 5px 10px;
-    background-color: gray;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-  
-  .player-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-  }
-  
-  .player-table th, .player-table td {
-    border: 1px solid black;
-    padding: 10px;
-    text-align: center;
-  }
-  
-  .edit-btn {
-    padding: 5px 10px;
-    background-color: gray;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-   */
-   /* Main container for the configuration component */
 .configure-player-list {
   display: flex;
   flex-direction: column;
@@ -59,7 +9,12 @@
   font-family: 'Roboto', sans-serif;
   padding: 20px;
 }
-
+.PlayerSlabs {
+  display: flex;                 /* Use flexbox for layout */
+  flex-wrap: wrap;              /* Allow items to wrap to the next line */
+  gap: 20px;                    /* Add space between items */
+  margin: 20px;                 /* Outer margin for spacing */
+}
 /* Title styling */
 .title {
   font-size: 2.5rem;
@@ -101,7 +56,32 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
 }
-
+.slab-config-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(135deg, #2b5876, #4e4376);
+  color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  margin-bottom: 20px;
+}
+.slab-config button{
+   padding: 5px 10px;
+    font-size: 1rem;
+    background-color: #ffdf00;
+    color: #2b5876;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    margin: 10px;
+}
+.slab-config h3{
+align-items: center;
+}
 .ok-btn:hover {
   background-color: #ffcf00;
   transform: translateY(-3px);
@@ -177,7 +157,8 @@
 }
 /* Increase/Decrease Pool Size button styling */
 .adjuster-buttons button {
-  padding: 10px 20px;
+
+  padding: 5px 10px;
   font-size: 1rem;
   background-color: #ffdf00; /* Matching OK button background */
   color: #2b5876; /* Text color to match the theme */
@@ -186,7 +167,7 @@
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
-  margin: 0 10px; /* Space between buttons */
+  margin: 10px; /* Space between buttons */
 }
 
 .adjuster-buttons button:hover {
@@ -204,6 +185,7 @@
 }
 .selected-pool-size ,.selected-time {
   font-size: 2rem;
+  margin: 10px ;
   color: #ffdf00; /* Bright yellow to match theme */
   padding: 10px 20px;
   border: 2px solid #ffdf00;
