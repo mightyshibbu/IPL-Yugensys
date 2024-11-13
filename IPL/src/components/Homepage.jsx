@@ -8,7 +8,7 @@ const HomePage = ({poolSize,configTime,numSlabs,totalOwners}) => {
   const [showInstructions, setShowInstructions] = useState(false);
   const handleConfig = () => {
     console.log("Navigating to Configuration");
-    navigate("/config", { replace: true });
+    navigate("/auctionConfig", { replace: true });
   };
 
   const handleBeginAuction = () => {

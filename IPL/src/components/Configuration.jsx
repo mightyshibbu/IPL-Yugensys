@@ -79,62 +79,7 @@ const Configuration = ({
       }
     });
   }, [slabsConfig, players]);
-  // Helper function to adjust players in a slab
-  // const adjustPlayers = (slabName, action) => {
-  //   const incrementCount = totalOwners;
 
-  //   const updateSlabPlayers = (slabPlayers, filterCondition) => {
-  //     if (action === "increment") {
-  //       const newPlayers = players
-  //         .filter(filterCondition)
-  //         .slice(0, incrementCount);
-  //       return [...slabPlayers, ...newPlayers];
-  //     } else if (action === "decrement") {
-  //       return slabPlayers.slice(0, -incrementCount);
-  //     }
-  //     return slabPlayers;
-  //   };
-
-  //   switch (slabName) {
-  //     case "Marquee":
-  //       setMarqueePlayers((prev) =>
-  //         updateSlabPlayers(prev, (player) => player.PSlab === "Marquee")
-  //       );
-  //       break;
-  //     case "A":
-  //       setSlabAPlayers((prev) =>
-  //         updateSlabPlayers(prev, (player) => player.PSlab === "A")
-  //       );
-  //       break;
-  //     case "B":
-  //       setSlabBPlayers((prev) =>
-  //         updateSlabPlayers(prev, (player) => player.PSlab === "B")
-  //       );
-  //       break;
-  //     case "C":
-  //       setSlabCPlayers((prev) =>
-  //         updateSlabPlayers(prev, (player) => player.PSlab === "C")
-  //       );
-  //       break;
-  //     case "D":
-  //       setSlabDPlayers((prev) =>
-  //         updateSlabPlayers(prev, (player) => player.PSlab === "D")
-  //       );
-  //       break;
-  //     case "E":
-  //       setSlabEPlayers((prev) =>
-  //         updateSlabPlayers(prev, (player) => player.PSlab === "E")
-  //       );
-  //       break;
-  //     case "Impact":
-  //       setImpactPlayers((prev) =>
-  //         updateSlabPlayers(prev, (player) => player.PSlab === "Impact")
-  //       );
-  //       break;
-  //     default:
-  //       break;
-  //   }
-  // };
   const adjustPlayers = (slabName, action) => {
     const incrementCount = totalOwners;
   
@@ -340,30 +285,6 @@ const Configuration = ({
         {error && <div className="error-message">{error}</div>}
       </div>
 
-      {/* <div className="time-container">
-        <label>Set Number of Owners (min 2, max 6): </label>
-        <div className="selected-time">{totalOwners}</div>
-        <div className="adjuster-buttons">
-          <button
-            onClick={() => setTotalOwners((prev) => Math.max(prev - 1, 2))
-              setPoolSize((prev) => Math.max(prev - 1, 2))
-            }
-            disabled={totalOwners <= 2}
-          >
-            -1
-          </button>
-          <button
-            onClick={() => setTotalOwners((prev) => Math.min(prev + 1, 6))
-              (prev) => Math.max(prev - 1, 2)
-            }
-            disabled={totalOwners >= 6}
-          >
-            +1
-          </button>
-          <button onClick={handleSaveOwners}>Save Owners</button>
-        </div>
-        {error && <div className="error-message">{error}</div>}
-      </div> */}
       <div className="time-container">
         <label>Set Number of Owners (min 2, max 6): </label>
         <div className="selected-time">{totalOwners}</div>
@@ -405,27 +326,7 @@ const Configuration = ({
 
       {/* Pool Size Config */}
       {ownersConfirmed && (
-        // <div className="pool-size-container">
-        //   <label>Set Pool Size (Multiple of {totalOwners}, Max 36): </label>
-        //   <div className="selected-pool-size">{poolSize}</div>
-        //   <div className="adjuster-buttons">
-        //     <button
-        //       onClick={decreasePoolSize}
-        //       disabled={poolSize <= totalOwners}
-        //     >
-        //       Decrease Pool Size
-        //     </button>
-
-        //     <button
-        //       onClick={increasePoolSize}
-        //       disabled={poolSize >= players.length}
-        //     >
-        //       Increase Pool Size
-        //     </button>
-        //     <button onClick={handleSavePoolSize}>Save Pool Size</button>
-        //   </div>
-        //   {error && <div className="error-message">{error}</div>}
-        // </div>
+       
         <div className="slab-config-container">
           <label>
             Number of Slabs (Min {minSlabs}, Max {maxSlabs}):{" "}
@@ -473,34 +374,7 @@ const Configuration = ({
               />
             </div>
           ))}
-          {/* <table className="player-table">
-        <thead>
-          <tr>
-            <th>PID</th>
-            <th>PName</th>
-        
-            <th>PRole</th>
-            <th>PSlab</th>
-            <th>Change</th>
-          </tr>
-        </thead>
-        <tbody>
-          {players.slice(0, poolSize).map((player) => (
-            <tr key={player.PID}>
-              <td>{player.PID}</td>
-              <td>{player.PName}</td>
-           
-              <td>{player.PRole}</td>
-              <td>{player.PSlab}</td>
-              <td>
-                <div style={{ color: "white" }}>
-                  <Link to={`/edit-player/${player.PID}`}>Edit</Link>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table> */}
+         
         </div>
       )}
 
