@@ -39,7 +39,7 @@ useEffect(()=>{
 console.log("Player Data: ",playerData.PName)
 })
 const handleBack = () => {
-    navigate("/config", { replace: true });
+    navigate("/playerConfig", { replace: true });
   };
 const handleChange = (e) => {
     const { name, value } = e.target;
@@ -59,7 +59,7 @@ const handleChange = (e) => {
       });
 
       if (response.ok) {
-        navigate('/config'); // Redirect to the configure page or wherever needed
+        navigate('/playerConfig'); // Redirect to the configure page or wherever needed
       } else {
         console.error('Error updating player data');
       }
@@ -118,16 +118,6 @@ const handleChange = (e) => {
               type="text"
               name="PWeight"
               value={playerData.PWeight}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div>
-            <label>Slab:</label>
-            <input
-              type="text"
-              name="PSlab"
-              value={playerData.PSlab}
               onChange={handleChange}
               required
             />

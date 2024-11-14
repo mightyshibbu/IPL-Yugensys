@@ -1,0 +1,57 @@
+/* Basic styling for the container */
+.sequence-container {
+    text-align: center;
+    padding: 20px;
+    background-color: #f9f9f9;
+    font-family: 'Arial', sans-serif;
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Title of the sequence screen */
+  h1 {
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  /* Display the current slab's name */
+  .current-slab h2 {
+    font-size: 28px;
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  
+  /* Arrow pointing downwards between slabs */
+  .arrow-down {
+    font-size: 40px;
+    color: #666;
+    margin: 20px 0;
+  }
+  
+  /* Container for the next slab */
+  .next-slab {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 1s ease, transform 1s ease;
+  }
+  
+  /* Add sliding and fading effect when the next slab appears */
+  .next-slab.slide-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  /* Styling for the text during the animation */
+  .animation-text {
+    font-size: 16px;
+    color: #888;
+    margin-top: 20px;
+    font-style: italic;
+    font-weight: 600;
+  }
+  

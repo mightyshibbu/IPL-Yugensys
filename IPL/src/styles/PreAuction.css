@@ -1,0 +1,148 @@
+/* PreAuction.css */
+
+/* Main auction container styling */
+.auction-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(135deg, #2b5876, #4e4376);
+    color: #ffffff;
+    width: 97vw;
+    height: auto;
+    box-sizing: border-box;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Timer styling */
+  .timer {
+    font-size: 24px;
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 20px;
+    transition: text-shadow 0.3s ease;
+  }
+  
+  .timer.glow {
+    text-shadow: 0 0 10px #ffdf00, 0 0 20px #ffdf00, 0 0 30px #ffdf00;
+  }
+  
+  /* Section for each player slab */
+  .slab-container {
+    width: 90%;
+    margin: 15px 0;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Table styling */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  thead th {
+    background-color: rgba(30, 40, 80, 0.8);
+    color: #ffdf00;
+    padding: 10px;
+    font-weight: lighter;
+  }
+  
+  tbody tr {
+    transition: background-color 0.2s;
+  }
+  
+  tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  td, th {
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+  }
+  
+  td input[type="number"] {
+    width: 80px;
+    padding: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid #ffdf00;
+    border-radius: 4px;
+    color: #ffffff;
+    transition: border-color 0.3s ease;
+  }
+  
+  td input[type="number"]:focus {
+    border-color: #ffdf00;
+    outline: none;
+  }
+  
+  /* Bid information styling */
+  .bid-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffdf00;
+  }
+  
+  /* Button styling */
+  button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #ffdf00;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  button:hover {
+    background-color: #0061cc;
+  }
+  
+  button:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+  }
+  
+  /* Next Owner button */
+  .next-owner {
+    margin-top: 20px;
+  }
+  
+  /* Owner card styling */
+  .owner-card {
+    display: inline-block;
+    padding: 20px;
+    margin: 10px;
+    min-width: 200px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #ffdf00;
+    text-align: center;
+  }
+  
+  /* Control buttons */
+  .control-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 20px;
+  }
+  
+  .control-buttons button {
+    background-color: #b8d5f4;
+    color: #0046f6;
+    font-size: large;
+    width: 120px;
+  }
+  

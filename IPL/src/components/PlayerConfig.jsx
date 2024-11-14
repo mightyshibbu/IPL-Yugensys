@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "../styles/PlayerConfig.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,Link } from "react-router-dom";
 const PlayerConfig = ({ setSlabsConfig, totalOwners, numSlabs, poolSize }) => {
   const [availablePlayers, setAvailablePlayers] = useState([]);
   const [slabsConfig, setSlabsConfigState] = useState([]);
@@ -61,7 +61,24 @@ const PlayerConfig = ({ setSlabsConfig, totalOwners, numSlabs, poolSize }) => {
         console.log("TESTING, PlayerData:", playerData);
         localStorage.setItem("PlayerData", JSON.stringify(playerData));
     };
-    
+    useEffect(() => {
+        const fetchPlayers = async () => {
+          try {
+            const response = await fetch('http://localhost:3000/api/getAllPlayers'); // Updated endpoint
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            const data = await response.json();
+            localStorage.setItem("players", JSON.stringify(data));
+          } catch (error) {
+            console.error('Error fetching players:', error);
+          }
+        };
+        // localStorage.getItem("poolSize")?setPoolSize(localStorage.getItem("poolSize")): localStorage.setItem("poolSize",poolSize);
+        // localStorage.getItem("configTime")?setPoolSize(localStorage.getItem("configTime")): localStorage.setItem("configTime",configTime);
+        fetchPlayers();
+        
+      },[]);
     useEffect(() => {
         // Retrieve saved data from localStorage
         console.log("INSIDE useEffect");
@@ -217,6 +234,7 @@ return (
                       <button onClick={() => handleRemovePlayerFromSlab(player, slab.name)}>
                         Remove
                       </button>
+                      <button style={{color:"white"}}><Link to={`/edit-player/${player.PID}`}>Edit</Link></button>
                     </td>
                   </tr>
                 ))}
