@@ -242,7 +242,9 @@ const SlabConfig = ({
     updatedSlabs[index][field] = value;
     setSlabsConfig(updatedSlabs);
   };
-
+  const handleBack = () => {
+    navigate("/auctionConfig", { replace: true })
+  };
   // Handle when OK is clicked
   const handleOk = () => {
     if (poolSize >= 1 && poolSize <= players.length) {
@@ -331,6 +333,9 @@ const SlabConfig = ({
 
       <button className="ok-btn" onClick={handleOk}>
         OK
+      </button>
+      <button className="ok-btn" onClick={handleBack}>
+        Back
       </button>
     </div>
   );

@@ -1,113 +1,93 @@
-/* .player-config {
-  margin: 20px auto;
-  max-width: 800px;
-  background-color: #f9f9f9;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-  font-family: 'Arial', sans-serif;
-}
-
-.player-config h2 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 20px;
-}
-
-.players-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  justify-content: center;
-}
-
-.player-item {
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 10px;
-  width: 180px;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
-}
-
-.player-item:hover {
-  transform: scale(1.05);
-}
-
-.player-item p {
-  margin: 5px 0;
-  font-size: 14px;
-  color: #555;
-}
-
-.player-item button {
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.player-item button:hover {
-  background-color: #0056b3;
-}
-
-.edit-player {
-  margin-top: 20px;
+/* General styling for the slab section */
+.slab-section {
+  border: 2px solid #ccc;
   padding: 15px;
-  background-color: #eaf4fc;
+  margin: 10px 0;
   border-radius: 8px;
-  border: 1px solid #b6e0ff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-.edit-player h3 {
-  color: #333;
-  margin-bottom: 15px;
+/* Balanced state styling */
+.slab-section.balanced {
+  background-color: #e6f7e6; /* Light green background */
+  border-color: #66bb6a; /* Green border */
 }
 
-.edit-player label {
-  font-size: 14px;
-  color: #333;
-  margin-right: 10px;
+.slab-section.balanced h3 {
+  color: #2e7d32; /* Dark green text color */
 }
 
-.edit-player select {
-  padding: 5px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  margin-right: 10px;
+.slab-section.balanced table {
+  border-collapse: collapse;
 }
 
-.edit-player button {
-  background-color: #28a745;
-  color: #fff;
+.slab-section.balanced table th,
+.slab-section.balanced table td {
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.slab-section.balanced table tr:nth-child(even) {
+  background-color: #f9f9f9; /* Light gray for even rows */
+}
+
+.slab-section.balanced table tr:hover {
+  background-color: #f1f1f1; /* Slightly darker gray on hover */
+}
+
+/* Unbalanced state styling */
+.slab-section.unbalanced {
+  background-color: #f8d7da; /* Light red background */
+  border-color: #e57373; /* Red border */
+}
+
+.slab-section.unbalanced h3 {
+  color: #d32f2f; /* Dark red text color */
+}
+
+.slab-section.unbalanced table {
+  border-collapse: collapse;
+}
+
+.slab-section.unbalanced table th,
+.slab-section.unbalanced table td {
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.slab-section.unbalanced table tr:nth-child(even) {
+  background-color: #f9f9f9; /* Light gray for even rows */
+}
+
+.slab-section.unbalanced table tr:hover {
+  background-color: #f1f1f1; /* Slightly darker gray on hover */
+}
+
+/* Additional style for actions (e.g., remove player) */
+.slab-section button {
+  background-color: #f44336; /* Red button for remove */
+  color: white;
   border: none;
-  padding: 5px 15px;
-  border-radius: 5px;
+  padding: 6px 12px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
 }
 
-.edit-player button:hover {
-  background-color: #218838;
+.slab-section button:hover {
+  background-color: #d32f2f; /* Darker red on hover */
 }
 
-td{
-  color: black;
-} */
- /* File: PlayerConfig.css */
-
-/* Basic reset for a clean start */
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family:Arial, Helvetica, sans-serif;
   background-color: #f4f4f4;
 }
-
+h1{
+  color: #0056b3;
+}
 /* Main container */
 h2 {
   text-align: center;
@@ -119,7 +99,9 @@ h3 {
   color: #444;
   margin-bottom: 10px;
 }
-
+.slab-section {
+  margin-bottom: 15px;
+}
 /* Slab section styling */
 .slab-section {
   background-color: #fff;

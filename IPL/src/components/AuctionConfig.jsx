@@ -50,6 +50,9 @@ const AuctionConfig = ({
   const handleOwnersChange = (event) => {
     setTotalOwners(event.target.value);
   };
+  const handleBack = () => {
+    navigate("/", { replace: true })
+  };
 
   const handleOk = () => {
     // Validate only if values have been changed and are required
@@ -154,6 +157,9 @@ const AuctionConfig = ({
 
       <button className="ok-btn" onClick={handleOk}>
         OK
+      </button>
+      <button className="ok-btn" onClick={handleBack}>
+        Back
       </button>
     </div>
   );
