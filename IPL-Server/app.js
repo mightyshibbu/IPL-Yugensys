@@ -28,8 +28,60 @@ const db = mysql.createConnection({
   database: process.env.DB_NAME,
 });
 
+const initializeDatabase = () => {
+  db.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME}`, (err) => {
+    if (err) {
+      console.error('Error creating database:', err);
+      return;
+    }
+    console.log('Database created or already exists');
+
+    // Create tables if they do not exist
+    const createPlayersTable = `
+      CREATE TABLE IF NOT EXISTS Players (
+        PID INT AUTO_INCREMENT PRIMARY KEY,
+        PName VARCHAR(255),
+        PAge INT,
+        PRole VARCHAR(255),
+        PHeight INT,
+        PWeight INT,
+        PSlab VARCHAR(255)
+      )`;
+
+    db.query(createPlayersTable, (err) => {
+      if (err) {
+        console.error('Error creating Players table:', err);
+        return;
+      }
+      console.log('Players table created or already exists');
+    });
+
+    const createAuctionsTable = `
+      CREATE TABLE IF NOT EXISTS auctions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        owners JSON
+      )`;
+
+    db.query(createAuctionsTable, (err) => {
+      if (err) {
+        console.error('Error creating auctions table:', err);
+        return;
+      }
+      console.log('Auctions table created or already exists');
+    });
+  });
+};
+
 // Connect to the database
 db.connect((err) => {
+  if (err) {
+    console.error('Error connecting to MySQL:', err);
+    return;
+  }
+  console.log('Connected to MySQL database');
+  
+  // Call the initialization function
+  initializeDatabase();
   if (err) {
     console.error('Error connecting to MySQL:', err);
     return;
