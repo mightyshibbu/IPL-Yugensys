@@ -159,14 +159,22 @@ export const renderBidOptions = (
     return null;
   }
 
-  const basePrice = slabDetails.min || 50;
-  const maxBid = slabDetails.max || 2000;
+  const basePrice = slabDetails.basePrice;
+  const maxBid = slabDetails.maxBid;
   const bidIncrement = 50;
+  const reservedAmount = 1000; // Minimum amount to keep in reserve
 
   // Calculate valid bid values
   const validBids = [];
   for (let bid = basePrice; bid <= maxBid; bid += bidIncrement) {
-    if (bid >= highestBid && bid <= owner.unitsLeft) {
+    // Check if:
+    // 1. Bid is greater than or equal to current highest bid
+    // 2. Owner has enough units left after bidding (including reserved amount)
+    // 3. Bid is within slab's min and max range
+    if (bid >= highestBid && 
+        (owner.unitsLeft - bid) >= reservedAmount && 
+        bid >= basePrice && 
+        bid <= maxBid) {
       validBids.push(bid);
     }
   }
@@ -181,7 +189,7 @@ export const renderBidOptions = (
       {validBids.map(bidValue => (
         <span
           key={bidValue}
-          className="bid-option"
+          className={`bid-option ${bidValue === maxBid ? 'max-bid' : ''}`}
           onClick={() => handleBidClick(owner.id, bidValue)}
         >
           {bidValue}
