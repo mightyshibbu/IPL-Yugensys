@@ -98,6 +98,8 @@ const SlabConfig = ({
 
   // Handle when OK is clicked
   const handleOk = () => {
+    console.log("Inside HandleOK poolsize",poolSize);
+    
     if (poolSize >= 1 && poolSize <= players.length) {
       setSlabs(slabsConfig); // Pass the configured slabs to the parent
       navigate("/playerConfig", { replace: true });

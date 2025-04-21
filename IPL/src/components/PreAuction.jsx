@@ -22,7 +22,7 @@ const PreAuction = ({ totalOwners }) => {
     if (savedAuctionData) {
       const auctionConfig = JSON.parse(savedAuctionData);
       setAuctionData(auctionConfig);
-      
+
       // Distribute the total units among the owners if not already set
       if (!savedOwnerUnits) {
         const initialUnits = {};
@@ -52,13 +52,13 @@ const PreAuction = ({ totalOwners }) => {
     localStorage.setItem("PreAuctionData", JSON.stringify(purchases));
     localStorage.setItem("AuctionData", JSON.stringify(auctionData)); // Save auction configuration
     localStorage.setItem("OwnerUnits", JSON.stringify(ownerUnits)); // Save owner units
+    console.log("ownerUnits:", ownerUnits)
   }, [purchases, auctionData, ownerUnits]);
 
   // Handle purchasing a player
   const handlePurchase = (player, slab, ownerId) => {
     const purchasePrice = bidValues[player.PID] || 0;
     const slabMinBid = getSlabMinBid(slab);
-
     if (purchasePrice < slabMinBid) {
       alert(`Price should be at least ${slabMinBid} units for players in the ${slab} slab.`);
       return;
@@ -69,7 +69,6 @@ const PreAuction = ({ totalOwners }) => {
       alert("You do not have enough units left to purchase this player.");
       return;
     }
-
     // Update the remaining units for the current owner
     setOwnerUnits((prevUnits) => ({
       ...prevUnits,
@@ -87,6 +86,22 @@ const PreAuction = ({ totalOwners }) => {
     navigate("/playerConfig", { replace: true });
   };
   const handleBeginAuction = () => {
+    // Get PlayerData from localStorage
+    const storedPlayerData = localStorage.getItem("PlayerData");
+
+    if (storedPlayerData) {
+      const playerDataObj = JSON.parse(storedPlayerData);
+      // Remove purchased players from each slab array in playerDataObj
+      Object.keys(playerDataObj).forEach((slab) => {
+        playerDataObj[slab] = playerDataObj[slab].filter(
+          (player) => !purchases[player.PID]
+        );
+      });
+
+
+      // Save updated PlayerData back to 
+      localStorage.setItem("PlayerData", JSON.stringify(playerDataObj));
+    }
     navigate("/sequence", { replace: true });
   };
 
@@ -162,7 +177,7 @@ const PreAuction = ({ totalOwners }) => {
           </table>
         </div>
       ))}
-        <button className="ok-btn" onClick={handleBeginAuction}>
+      <button className="ok-btn" onClick={handleBeginAuction}>
         Begin Auction
       </button>
       <button className="ok-btn" onClick={handleBack}>
