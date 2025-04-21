@@ -154,34 +154,42 @@ export const renderBidOptions = (
   slabDetails,
   highestBid,
   handleBidClick
-) => (
-  <div className="bid-options">
-    Available Bids:
-    {isStarted && ifFullyFilled(owner.id) && currentPlayer.PID !== 9999 && (
-      [...Array(Math.floor((slabDetails.maxBid - slabDetails.basePrice) / 50) + 1)]
-        .map((_, i) => slabDetails.basePrice + i * 50)
-        .filter((bidValue) => bidValue >= highestBid || bidValue < owner.unitsLeft)
-        .map((bidValue) => {
-          let className = "";
-          if (highestBid > bidValue || owner.unitsLeft < bidValue) {
-            className += "line-through ";
-          }
-          if (bidValue === slabDetails.maxBid) {
-            className += owner.unitsLeft >= highestBid ? "pointer" : "not-allowed";
-          }
-          return (
-            <span
-              key={bidValue}
-              className={className.trim()}
-              onClick={() => handleBidClick(owner.id, bidValue)}
-            >
-              {bidValue}
-            </span>
-          );
-        })
-    )}
-  </div>
-);
+) => {
+  if (!isStarted || !currentPlayer || !slabDetails || !ifFullyFilled(owner.id) || currentPlayer.PID === 9999) {
+    return null;
+  }
+
+  const basePrice = slabDetails.min || 50;
+  const maxBid = slabDetails.max || 2000;
+  const bidIncrement = 50;
+
+  // Calculate valid bid values
+  const validBids = [];
+  for (let bid = basePrice; bid <= maxBid; bid += bidIncrement) {
+    if (bid >= highestBid && bid <= owner.unitsLeft) {
+      validBids.push(bid);
+    }
+  }
+
+  if (validBids.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="bid-options">
+      Available Bids:
+      {validBids.map(bidValue => (
+        <span
+          key={bidValue}
+          className="bid-option"
+          onClick={() => handleBidClick(owner.id, bidValue)}
+        >
+          {bidValue}
+        </span>
+      ))}
+    </div>
+  );
+};
 
 export const renderControlButtons = (
   handleStart,

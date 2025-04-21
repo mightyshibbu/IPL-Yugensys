@@ -25,20 +25,16 @@ export const initializePlayersFromLocalStorage = (
   setAuctionSequence(storedAuctionSequence);
 
   // Create a flattened array of players maintaining slab order from AuctionSequence
-  const flattenedPlayers = [];
-  
-  // Add players from each slab in the order specified by AuctionSequence
-  storedAuctionSequence.forEach(slabName => {
+  const flattenedPlayers = storedAuctionSequence.reduce((acc, slabName) => {
     if (storedPlayerData[slabName]) {
       // Sort players within each slab by PID to maintain consistent order
       const sortedSlabPlayers = [...storedPlayerData[slabName]].sort((a, b) => a.PID - b.PID);
-      flattenedPlayers.push(...sortedSlabPlayers);
+      acc.push(...sortedSlabPlayers);
     }
-  });
+    return acc;
+  }, []);
 
-  // Sort players within each slab by auction sequence
-  const sortedPlayers = sortPlayersByAuctionSequence(flattenedPlayers, storedAuctionSequence);
-  setPlayersList(sortedPlayers.slice(0, poolSize));
+  setPlayersList(flattenedPlayers);
 };
 
 export const initializeAuctionState = (

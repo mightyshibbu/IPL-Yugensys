@@ -74,16 +74,16 @@ const getSlabDetails = (slabName) => {
   
   if (slabConfig) {
     return {
-      min: slabConfig.basePrice,
-      max: slabConfig.maxBid || 2000,
+      min: slabConfig.basePrice || 50,
+      max: slabConfig.maxBid || null,
       name: slabConfig.name
     };
   }
 
   // Default values if slab not found
   return {
-    min: 200,
-    max: 2000,
+    min: 50,
+    max: null,
     name: slabName
   };
 };
@@ -142,14 +142,20 @@ const slabMaxSize = (poolSize, numSlabs, totalOwners) => {
 
   return maxAllocations;
 };
+
 const auctionDataRaw = localStorage.getItem("AuctionData");
 const auctionData = auctionDataRaw ? JSON.parse(auctionDataRaw) : {};
 const configTime = auctionData.configTime || 180;
 const totalOwners = auctionData.totalOwners || 3;
 const poolSize = auctionData.poolSize || 12;
-const slabsConfigRaw = localStorage.getItem("slabConfig");
+
+// Fix slabs configuration loading
+const slabsConfigRaw = localStorage.getItem("slabsConfig");
 const slabs = slabsConfigRaw ? JSON.parse(slabsConfigRaw) : [];
 const numSlabs = slabs.length;
+
+// Log for debugging
+console.log("Slabs configuration:", slabs);
 console.log("Number of slabs:", numSlabs);
 
 const Auction = ({ players }) => {
@@ -168,6 +174,7 @@ const Auction = ({ players }) => {
     const [isStarted, setIsStarted] = useState(false);
     const [isStopped, setIsStopped] = useState(false);
     const [poolSizeState, setPoolSize] = useState(poolSize);
+    const [slabsState, setSlabsState] = useState(slabs); // Add state for slabs
   
     const navigate = useNavigate();
     const currentPlayer = playersList[currentPlayerIndex] || DEFAULT_PLAYER;
@@ -284,6 +291,19 @@ const Auction = ({ players }) => {
         setHighestBid(currentPlayer.minimumBid || details.basePrice);
       }
     }, [currentPlayerIndex, currentPlayer, slabs]);
+  
+    // Load slabs configuration on component mount
+    useEffect(() => {
+        const loadSlabsConfig = () => {
+            const savedSlabsConfig = localStorage.getItem("slabsConfig");
+            if (savedSlabsConfig) {
+                const parsedSlabs = JSON.parse(savedSlabsConfig);
+                setSlabsState(parsedSlabs);
+                console.log("Loaded slabs configuration:", parsedSlabs);
+            }
+        };
+        loadSlabsConfig();
+    }, []);
   
     return (
       <>
