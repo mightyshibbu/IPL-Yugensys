@@ -253,9 +253,39 @@ export const updateOwnerBid = (ownerId, bidValue, owners, setOwners) => {
   ));
 };
 
-export const ifFullyFilled = (ownerID, owners, poolSize) => {
+export const ifFullyFilled = (ownerID, owners, poolSize, slabDetails) => {
+  // console.log('Checking ifFullyFilled for owner:', ownerID, {
+  //   owners,
+  //   poolSize,
+  //   slabDetails
+  // });
+
   const owner = owners.find((o) => o.id === ownerID);
-  return owner ? owner.purchasedPlayers.length < poolSize / 3 : false;
+  if (!owner || !slabDetails) {
+    console.log('Owner or slabDetails not found, returning false');
+    return false;
+  }
+  
+  // Check total player limit - allow up to half of total players per owner
+  const totalPurchased = owner.purchasedPlayers.length;
+  const maxPlayersPerOwner = Math.ceil(poolSize / owners.length);
+  // console.log('Total purchased players:', totalPurchased, 'Limit:', maxPlayersPerOwner);
+  if (totalPurchased >= maxPlayersPerOwner) {
+    console.log('Owner reached total player limit');
+    return false;
+  }
+  
+  // Check slab limit - allow up to half of the slab's players per owner
+  const slabPlayers = owner.slabPlayers[slabDetails.name] || [];
+  const maxPlayersPerSlab = Math.ceil(slabDetails.numPlayers / owners.length);
+  // console.log('Slab players:', slabPlayers.length, 'Max per slab:', maxPlayersPerSlab);
+  if (slabPlayers.length >= maxPlayersPerSlab) {
+    console.log('Owner reached slab limit');
+    return false;
+  }
+  
+  console.log('Owner is eligible to bid');
+  return true;
 };
 
 export const updatePlayerLists = (
@@ -319,14 +349,12 @@ export const makeBid = (
     return;
   }
 
-  // Calculate max players per slab per owner
-  const playersPerSlab = Math.ceil(poolSize / numSlabs);
-  const maxPlayersPerOwner = Math.ceil(playersPerSlab / totalOwners);
-  
+  // Calculate max players per slab per owner - same as ifFullyFilled
+  const maxPlayersPerSlab = Math.ceil(slabDetails.numPlayers / owners.length);
   const slabPlayers = owner.slabPlayers[slabDetails.name] || [];
 
-  if (slabPlayers.length >= maxPlayersPerOwner) {
-    alert(`Owner ${owner.id} cannot purchase more players from ${slabDetails.name} slab`);
+  if (slabPlayers.length >= maxPlayersPerSlab) {
+    console.log(`Owner ${owner.id} cannot purchase more players from ${slabDetails.name} slab. Current: ${slabPlayers.length}, Max: ${maxPlayersPerSlab}`);
     return;
   }
 
@@ -430,12 +458,13 @@ export const assignPlayerToHighestBidder = (
 
 export const saveAuctionData = async (auctionData) => {
   try {
+    console.log("in saveAuctionData, AUCTION DATA:", auctionData)
     const response = await fetch("http://localhost:3000/api/saveAuction", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(auctionData),
     });
-
+    console.log("in saveAuctionData, AUCTION DATA:", auctionData)
     if (!response.ok) throw new Error("Failed to save auction data");
     const result = await response.json();
     console.log("Auction saved successfully:", result);
@@ -466,4 +495,49 @@ export const saveAuctionState = (
   };
 
   localStorage.setItem("auctionData", JSON.stringify(auctionState));
+};
+
+export const renderBidOptions = (owners, currentPlayer, slabDetails, handleBidClick) => {
+  console.log('renderBidOptions called with:', {
+    owners,
+    currentPlayer,
+    slabDetails
+  });
+
+  if (!currentPlayer || !slabDetails) {
+    console.log('Missing currentPlayer or slabDetails, returning null');
+    return null;
+  }
+  
+  return owners.map((owner) => {
+    const isEligible = ifFullyFilled(owner.id, owners, currentPlayer.poolSize, slabDetails);
+    console.log('Owner eligibility check:', {
+      ownerId: owner.id,
+      isEligible,
+      unitsLeft: owner.unitsLeft
+    });
+
+    if (!isEligible) return null;
+    
+    const bidOptions = calculateBidOptions(owner, currentPlayer, slabDetails);
+    console.log('Calculated bid options:', {
+      ownerId: owner.id,
+      bidOptions
+    });
+
+    return (
+      <div key={owner.id} className="bid-options">
+        <h3>{owner.name}</h3>
+        {bidOptions.map((bid) => (
+          <button
+            key={bid}
+            onClick={() => handleBidClick(owner.id, bid)}
+            className={bid === slabDetails.maxBid ? 'max-bid' : ''}
+          >
+            {bid}
+          </button>
+        ))}
+      </div>
+    );
+  });
 };

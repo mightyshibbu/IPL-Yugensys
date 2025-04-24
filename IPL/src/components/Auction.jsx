@@ -134,15 +134,24 @@ const Auction = ({ players }) => {
             console.log('Found Slab Config:', slabConfig);
             
             if (slabConfig) {
-                setSlabDetails({
+                const newSlabDetails = {
                     name: slabConfig.name,
                     basePrice: slabConfig.basePrice,
-                    maxBid: slabConfig.maxBid
-                });
+                    maxBid: slabConfig.maxBid || slabConfig.basePrice * 2, // Default max bid if not set
+                    numPlayers: slabConfig.numPlayers
+                };
+                console.log('Setting slab details:', newSlabDetails);
+                setSlabDetails(newSlabDetails);
                 setHighestBid(slabConfig.basePrice);
+            } else {
+                console.log('No slab config found for:', currentPlayer.PSlab);
+                setSlabDetails(DEFAULT_SLAB);
             }
+        } else {
+            console.log('No current player or PSlab, using default slab');
+            setSlabDetails(DEFAULT_SLAB);
         }
-    }, [currentSlabIndex, currentPlayer]);
+    }, [currentSlabIndex, currentPlayer, slabs]);
 
     // Move to next unsold player in current slab or next slab
     const moveToNextPlayer = () => {
@@ -298,43 +307,50 @@ const Auction = ({ players }) => {
     };
 
     // Handle bid assignment
-    const handlePlayerAssignment = () => {
+    const handlePlayerAssignment = async () => {
         if (highestBidder) {
             const poolSize = Object.values(playerDataState).flat().length;
             const totalOwners = owners.length;
 
-            assignPlayerToHighestBidder(
-                highestBidder,
-                isStopped,
-                owners,
-                slabDetails,
-                highestBid,
-                currentPlayer,
-                poolSize,
-                numSlabs,
-                totalOwners,
-                updateOwnerState,
-                updatePlayerLists,
-                () => saveAuctionState(
-                    playerDataState,
-                    currentSlabIndex,
-                    owners,
-                    highestBid,
+            // Wrap assignPlayerToHighestBidder in a promise to await completion
+            await new Promise((resolve) => {
+                assignPlayerToHighestBidder(
                     highestBidder,
+                    isStopped,
+                    owners,
+                    slabDetails,
+                    highestBid,
+                    currentPlayer,
                     poolSize,
+                    numSlabs,
+                    totalOwners,
+                    updateOwnerState,
+                    updatePlayerLists,
+                    () => {
+                        saveAuctionState(
+                            playerDataState,
+                            currentSlabIndex,
+                            owners,
+                            highestBid,
+                            highestBidder,
+                            poolSize,
+                            unbiddedPlayersQueue,
+                            timer
+                        );
+                        resolve();
+                    },
+                    setOwners,
                     unbiddedPlayersQueue,
-                    timer
-                ),
-                setOwners,
-                unbiddedPlayersQueue,
-                setUnbiddedPlayersQueue,
-                playerDataState,
-                setPlayerDataState,
-                currentSlabName,
-                setHighestBid,
-                setHighestBidder,
-                setTimer
-            );
+                    setUnbiddedPlayersQueue,
+                    playerDataState,
+                    setPlayerDataState,
+                    currentSlabName,
+                    setHighestBid,
+                    setHighestBidder,
+                    setTimer
+                );
+            });
+
             updatePlayerData(currentSlabName, currentPlayer);
             moveToNextPlayer();
         }
@@ -380,11 +396,23 @@ const Auction = ({ players }) => {
                         owners,
                         highestBidder,
                         isStopped,
-                        (owner) =>
-                            renderBidOptions(
+                        (owner) => {
+                            // console.log('Rendering bid options for owner:', {
+                            //     ownerId: owner.id,
+                            //     slabDetails,
+                            //     currentPlayer,
+                            //     isStarted
+                            // });
+                            
+                            if (!slabDetails || !currentPlayer) {
+                                console.log('Missing required data for bid options');
+                                return null;
+                            }
+                            
+                            return renderBidOptions(
                                 owner,
                                 isStarted,
-                                (ownerId) => ifFullyFilled(ownerId, owners, Object.values(playerDataState).flat().length),
+                                (ownerId) => ifFullyFilled(ownerId, owners, Object.values(playerDataState).flat().length, slabDetails),
                                 currentPlayer,
                                 slabDetails,
                                 highestBid,
@@ -405,7 +433,8 @@ const Auction = ({ players }) => {
                                         updateOwnerBid,
                                         setOwners
                                     )
-                            )
+                            );
+                        }
                     )}
                 </div>
             </div>

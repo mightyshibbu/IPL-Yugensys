@@ -135,7 +135,7 @@ export const renderOwnerCards = (
       <div>Units Left: {owner.unitsLeft}</div>
       {renderBidOptions(owner)}
       <div>
-        Purchased Players: {owner.purchasedPlayers.join(", ") || "None"}
+        Purchased Players: {owner.purchasedPlayers.length > 0 ? owner.purchasedPlayers.join(", ") : "None"}
       </div>
       <button
         disabled={(highestBidder && highestBidder.id === owner.id) || isStopped}

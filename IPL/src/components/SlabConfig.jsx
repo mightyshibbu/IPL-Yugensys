@@ -54,20 +54,15 @@ const SlabConfig = ({
   // Generate slabs with initial data
   const handleGenerateSlabs = () => {
     const initialSlabs = Array.from({ length: numSlabs }, (_, index) => {
-      let name;
-      if (index === 0) {
-        name = "Marquee"; // First slab name
-      } else if (index === numSlabs - 1) {
-        name = "Impact"; // Last slab name
-      } else {
-        name = String.fromCharCode(64 + index); // Generate names A, B, C, etc. for middle slabs
-      }
+      // Use the existing name if available, otherwise generate a default name
+      const existingSlab = slabsConfig[index];
+      const name = existingSlab?.name || `Slab ${index + 1}`;
 
       return {
         name,
         basePrice: minBid,
         maxBid: allowMaxBidCap ? maxBid : null,
-        numPlayers: 0, // New field for the number of players
+        numPlayers: 0,
       };
     });
 

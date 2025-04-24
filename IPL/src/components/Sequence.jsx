@@ -12,11 +12,11 @@ const Sequence = () => {
   // Get PlayerData from localStorage
   const playerData = JSON.parse(localStorage.getItem('PlayerData')) || {};
 
-  // Function to randomize slabs (excluding "Marquee" which should always be first)
+  // Function to randomize slabs
   const getRandomizedSlabs = () => {
-    const slabsKeys = Object.keys(playerData).filter(key => key !== 'Marquee');
-    const shuffled = slabsKeys.sort(() => Math.random() - 0.5); // Shuffle remaining slabs
-    return ['Marquee', ...shuffled]; // Ensure Marquee is always first
+    const slabsConfig = JSON.parse(localStorage.getItem("slabsConfig")) || [];
+    const slabNames = slabsConfig.map(slab => slab.name);
+    return slabNames.sort(() => Math.random() - 0.5); // Shuffle all slabs
   };
 
   // Set sequence and start animating when the component mounts
