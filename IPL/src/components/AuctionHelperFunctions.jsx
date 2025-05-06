@@ -1,34 +1,133 @@
 import React from "react";
 
 export const prepareAuctionData = (owners, slabs) => {
-  const slabMapping = slabs.reduce((acc, slab, index) => {
-    acc[slab.name] = index;
-    return acc;
-  }, {});
+  console.log("Preparing auction data:", { owners, slabs });
 
-  return {
-    owners: owners.map((owner) => {
-      const slabPlayers = {};
+  // Process each owner's data
+  const processedOwners = owners.map(owner => {
+    console.log(`Owner ${owner.id} purchased players:`, owner.purchasedPlayers);
 
-      for (const slabName of Object.keys(slabMapping)) {
-        const playersInSlab = owner.slabPlayers[slabName] || [];
-        slabPlayers[slabName] = playersInSlab.length > 0 ? playersInSlab : "No Players";
+    // Initialize arrays for each slab
+    const slabPlayers = {};
+    slabs.forEach(slab => {
+      slabPlayers[slab.name] = [];
+    });
+
+    // First, copy over all existing slab players
+    Object.entries(owner.slabPlayers).forEach(([slabName, players]) => {
+      slabPlayers[slabName] = [...players];
+    });
+
+    // Process purchased players
+    const purchasedPlayers = [];
+    
+    // First add all players from slabPlayers
+    Object.entries(slabPlayers).forEach(([slabName, players]) => {
+      players.forEach(playerName => {
+        if (!purchasedPlayers.some(p => p.name === playerName)) {
+          purchasedPlayers.push({
+            name: playerName,
+            slab: slabName,
+            playerId: playerName
+          });
+        }
+      });
+    });
+
+    // Then add any remaining players from purchasedPlayers that aren't in slabPlayers
+    (owner.purchasedPlayers || []).forEach(player => {
+      const playerName = typeof player === 'object' ? player.PName : player;
+      if (!purchasedPlayers.some(p => p.name === playerName)) {
+        // Find which slab this player belongs to
+        let playerSlab = 'UNKNOWN';
+        for (const [slabName, players] of Object.entries(owner.slabPlayers)) {
+          if (players.includes(playerName)) {
+            playerSlab = slabName;
+            break;
+          }
+        }
+        
+        purchasedPlayers.push({
+          name: playerName,
+          slab: playerSlab,
+          playerId: playerName
+        });
+
+        // Add to slab players if not already present
+        if (!slabPlayers[playerSlab].includes(playerName)) {
+          slabPlayers[playerSlab].push(playerName);
+        }
+      }
+    });
+
+    // Double check if any players are missing from either array
+    const allPlayerNames = new Set([
+      ...Object.values(slabPlayers).flat(),
+      ...(owner.purchasedPlayers || []).map(p => typeof p === 'object' ? p.PName : p)
+    ]);
+
+    allPlayerNames.forEach(playerName => {
+      // Check if player is in purchasedPlayers
+      if (!purchasedPlayers.some(p => p.name === playerName)) {
+        // Find which slab this player belongs to
+        let playerSlab = 'UNKNOWN';
+        for (const [slabName, players] of Object.entries(owner.slabPlayers)) {
+          if (players.includes(playerName)) {
+            playerSlab = slabName;
+            break;
+          }
+        }
+        
+        purchasedPlayers.push({
+          name: playerName,
+          slab: playerSlab,
+          playerId: playerName
+        });
       }
 
-      return {
-        id: owner.id,
-        unitsLeft: owner.unitsLeft,
-        slabPlayers: Object.fromEntries(
-          Object.entries(slabPlayers).filter(([_, players]) => players !== "No Players")
-        ),
-        purchasedPlayers: owner.purchasedPlayers.map((player) => ({
-          name: player.name,
-          slab: player.slab,
-          playerId: player.playerId,
-        })),
-      };
-    }),
+      // Check if player is in slabPlayers
+      let foundInSlab = false;
+      for (const [slabName, players] of Object.entries(slabPlayers)) {
+        if (players.includes(playerName)) {
+          foundInSlab = true;
+          break;
+        }
+      }
+
+      if (!foundInSlab) {
+        // Find which slab this player belongs to
+        let playerSlab = 'UNKNOWN';
+        for (const [slabName, players] of Object.entries(owner.slabPlayers)) {
+          if (players.includes(playerName)) {
+            playerSlab = slabName;
+            break;
+          }
+        }
+        
+        if (!slabPlayers[playerSlab]) {
+          slabPlayers[playerSlab] = [];
+        }
+        slabPlayers[playerSlab].push(playerName);
+      }
+    });
+
+    console.log(`Owner ${owner.id} final slab players:`, slabPlayers);
+    console.log(`Owner ${owner.id} final purchased players:`, purchasedPlayers.map(p => p.name));
+
+    return {
+      id: owner.id,
+      unitsLeft: owner.unitsLeft,
+      slabPlayers,
+      purchasedPlayers
+    };
+  });
+
+  const finalData = {
+    owners: processedOwners
   };
+
+  console.log("Final auction data:", finalData);
+  return finalData;
 };
 
 export const endAuction = async (
@@ -39,15 +138,57 @@ export const endAuction = async (
   navigate
 ) => {
   console.log("Auction completed!");
+  console.log("Current state when ending auction:");
+  
+  // Get the latest owner states from localStorage
+  const latestOwners = owners.map(owner => {
+    const storedState = localStorage.getItem(`owner_${owner.id}_state`);
+    if (storedState) {
+      const parsedState = JSON.parse(storedState);
+      console.log(`Retrieved latest state for owner ${owner.id}:`, parsedState);
+      return {
+        ...owner,
+        purchasedPlayers: parsedState.purchasedPlayers || owner.purchasedPlayers,
+        slabPlayers: parsedState.slabPlayers || owner.slabPlayers,
+        unitsLeft: parsedState.unitsLeft || owner.unitsLeft
+      };
+    }
+    return owner;
+  });
+
+  console.log("Latest owners state:", JSON.stringify(latestOwners, null, 2));
+  console.log("Slabs:", JSON.stringify(slabs, null, 2));
+  
+  // Log each owner's purchased players and slab players
+  latestOwners.forEach(owner => {
+    console.log(`Owner ${owner.id} final state:`, {
+      purchasedPlayers: owner.purchasedPlayers,
+      slabPlayers: owner.slabPlayers,
+      unitsLeft: owner.unitsLeft
+    });
+  });
+
   alert("Auction completed!");
 
   try {
-    const auctionData = prepareAuctionData(owners, slabs);
-    await saveAuctionData(auctionData);
+    // Prepare the auction data with latest owner states
+    const auctionData = prepareAuctionData(latestOwners, slabs);
+    
+    // Log the prepared data
+    console.log('Prepared auction data for saving:', JSON.stringify(auctionData, null, 2));
+
+    // Save the auction data
+    const result = await saveAuctionData(auctionData);
+    console.log('Auction data saved successfully:', result);
+    
+    // Clear the auction state from localStorage
     localStorage.removeItem("auctionData");
+    
+    // Navigate to the previous auctions page
     navigate("/previousAuctions", { replace: true });
   } catch (error) {
     console.error("Error ending auction:", error);
+    alert("Error saving auction data. Please try again.");
   }
 };
 
@@ -164,20 +305,16 @@ export const renderBidOptions = (
   const bidIncrement = 50;
   const reservedAmount = 1000; // Minimum amount to keep in reserve
 
-  // Calculate valid bid values
-  const validBids = [];
+  // Calculate all possible bid values
+  const allBids = [];
   for (let bid = basePrice; bid <= maxBid; bid += bidIncrement) {
-    // Check if:
-    // 1. Bid is greater than or equal to current highest bid
-    // 2. Owner has enough units left after bidding (including reserved amount)
-    // 3. Bid is within slab's min and max range
-    if (bid >= highestBid && 
-        (owner.unitsLeft - bid) >= reservedAmount && 
-        bid >= basePrice && 
-        bid <= maxBid) {
-      validBids.push(bid);
-    }
+    allBids.push(bid);
   }
+
+  // Filter bids based on owner's available units
+  const validBids = allBids.filter(bid => 
+    (owner.unitsLeft - bid) >= reservedAmount
+  );
 
   if (validBids.length === 0) {
     return null;
@@ -186,15 +323,27 @@ export const renderBidOptions = (
   return (
     <div className="bid-options">
       Available Bids:
-      {validBids.map(bidValue => (
-        <span
-          key={bidValue}
-          className={`bid-option ${bidValue === maxBid ? 'max-bid' : ''}`}
-          onClick={() => handleBidClick(owner.id, bidValue)}
-        >
-          {bidValue}
-        </span>
-      ))}
+      {validBids.map(bidValue => {
+        const isCancelled = bidValue < highestBid;
+        const isMaxBid = bidValue === maxBid;
+        const isHighestBid = bidValue === highestBid;
+        
+        return (
+          <span
+            key={bidValue}
+            className={`bid-option ${isMaxBid ? 'max-bid' : ''} ${isCancelled ? 'cancelled' : ''} ${isHighestBid ? 'highest-bid' : ''}`}
+            onClick={() => !isCancelled && handleBidClick(owner.id, bidValue)}
+            style={{
+              opacity: isCancelled ? 0.5 : 1,
+              cursor: isCancelled ? 'not-allowed' : 'pointer',
+              color: isCancelled ? 'red' : isMaxBid ? 'green' : isHighestBid ? 'blue' : 'black',
+              textDecoration: isCancelled ? 'line-through' : 'none'
+            }}
+          >
+            {bidValue}
+          </span>
+        );
+      })}
     </div>
   );
 };

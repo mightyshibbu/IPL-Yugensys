@@ -253,39 +253,28 @@ export const updateOwnerBid = (ownerId, bidValue, owners, setOwners) => {
   ));
 };
 
-export const ifFullyFilled = (ownerID, owners, poolSize, slabDetails) => {
-  // console.log('Checking ifFullyFilled for owner:', ownerID, {
-  //   owners,
-  //   poolSize,
-  //   slabDetails
-  // });
+export const ifFullyFilled = (ownerId, owners, poolSize, slabDetails) => {
+    const owner = owners.find((o) => o.id === ownerId);
+    if (!owner) return false; // Owner not found, can't bid
 
-  const owner = owners.find((o) => o.id === ownerID);
-  if (!owner || !slabDetails) {
-    console.log('Owner or slabDetails not found, returning false');
-    return false;
-  }
-  
-  // Check total player limit - allow up to half of total players per owner
-  const totalPurchased = owner.purchasedPlayers.length;
-  const maxPlayersPerOwner = Math.ceil(poolSize / owners.length);
-  // console.log('Total purchased players:', totalPurchased, 'Limit:', maxPlayersPerOwner);
-  if (totalPurchased >= maxPlayersPerOwner) {
-    console.log('Owner reached total player limit');
-    return false;
-  }
-  
-  // Check slab limit - allow up to half of the slab's players per owner
-  const slabPlayers = owner.slabPlayers[slabDetails.name] || [];
-  const maxPlayersPerSlab = Math.ceil(slabDetails.numPlayers / owners.length);
-  // console.log('Slab players:', slabPlayers.length, 'Max per slab:', maxPlayersPerSlab);
-  if (slabPlayers.length >= maxPlayersPerSlab) {
-    console.log('Owner reached slab limit');
-    return false;
-  }
-  
-  console.log('Owner is eligible to bid');
-  return true;
+    const totalOwners = owners.length;
+    const maxPlayersPerOwner = Math.ceil(6 / totalOwners); // 6 players per slab, divided by number of owners
+    const currentSlabPlayers = owner.slabPlayers[slabDetails.name] || [];
+    
+    // Check if owner has reached their limit for this slab
+    if (currentSlabPlayers.length >= maxPlayersPerOwner) {
+        return false; // Owner has reached slab limit, can't bid
+    }
+
+    // Check if owner has reached their total player limit
+    const totalPurchasedPlayers = owner.purchasedPlayers.length;
+    const maxTotalPlayers = Math.ceil(poolSize / totalOwners);
+    
+    if (totalPurchasedPlayers >= maxTotalPlayers) {
+        return false; // Owner has reached total limit, can't bid
+    }
+
+    return true; // Owner is eligible to bid
 };
 
 export const updatePlayerLists = (
@@ -321,6 +310,28 @@ export const updatePlayerLists = (
   }
 };
 
+export const updateAuctionState = (
+  playerData,
+  currentSlabIndex,
+  owners,
+  highestBid,
+  highestBidder,
+  poolSize,
+  unbiddedPlayersQueue,
+  timer
+) => {
+  saveAuctionState(
+    playerData,
+    currentSlabIndex,
+    owners,
+    highestBid,
+    highestBidder,
+    poolSize,
+    unbiddedPlayersQueue,
+    timer
+  );
+};
+
 export const makeBid = (
   ownerId,
   isStopped,
@@ -333,13 +344,15 @@ export const makeBid = (
   totalOwners,
   updateOwnerState,
   updatePlayerLists,
-  saveAuctionState,
   setOwners,
   unbiddedPlayersQueue,
   setUnbiddedPlayersQueue,
   playerData,
   setPlayerData,
-  currentSlabName
+  currentSlabName,
+  currentSlabIndex,
+  highestBidder,
+  timer
 ) => {
   if (isStopped || !owners || !slabDetails || !currentPlayer) return;
 
@@ -363,7 +376,16 @@ export const makeBid = (
 
   updateOwnerState(ownerId, updatedSlabPlayers, updatedPurchasedPlayers, owners, slabDetails, highestBid, setOwners);
   updatePlayerLists(unbiddedPlayersQueue, playerData, currentSlabName, currentPlayer, setUnbiddedPlayersQueue, setPlayerData);
-  saveAuctionState();
+  updateAuctionState(
+    playerData,
+    currentSlabIndex,
+    owners,
+    highestBid,
+    highestBidder,
+    poolSize,
+    unbiddedPlayersQueue,
+    timer
+  );
 };
 
 export const updateOwnerState = (
@@ -409,13 +431,13 @@ export const assignPlayerToHighestBidder = (
   totalOwners,
   updateOwnerState,
   updatePlayerLists,
-  saveAuctionState,
   setOwners,
   unbiddedPlayersQueue,
   setUnbiddedPlayersQueue,
   playerData,
   setPlayerData,
   currentSlabName,
+  saveAuctionState,
   setHighestBid,
   setHighestBidder,
   setTimer
@@ -437,13 +459,13 @@ export const assignPlayerToHighestBidder = (
     totalOwners,
     updateOwnerState,
     updatePlayerLists,
-    saveAuctionState,
     setOwners,
     unbiddedPlayersQueue,
     setUnbiddedPlayersQueue,
     playerData,
     setPlayerData,
-    currentSlabName
+    currentSlabName,
+    saveAuctionState
   );
 
   // Reset auction state
@@ -458,18 +480,33 @@ export const assignPlayerToHighestBidder = (
 
 export const saveAuctionData = async (auctionData) => {
   try {
-    console.log("in saveAuctionData, AUCTION DATA:", auctionData)
+    // Log the data being sent
+    console.log('Saving auction data:', JSON.stringify(auctionData, null, 2));
+
     const response = await fetch("http://localhost:3000/api/saveAuction", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(auctionData),
+      headers: { 
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        ...auctionData,
+        timestamp: new Date().toISOString(),
+        status: 'completed'
+      })
     });
-    console.log("in saveAuctionData, AUCTION DATA:", auctionData)
-    if (!response.ok) throw new Error("Failed to save auction data");
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Failed to save auction data: ${errorData.message || response.statusText}`);
+    }
+
     const result = await response.json();
     console.log("Auction saved successfully:", result);
+    return result;
   } catch (error) {
     console.error("Error saving auction data:", error);
+    throw error;
   }
 };
 
@@ -493,7 +530,7 @@ export const saveAuctionState = (
     unbiddedPlayersQueue,
     timer,
   };
-
+  
   localStorage.setItem("auctionData", JSON.stringify(auctionState));
 };
 

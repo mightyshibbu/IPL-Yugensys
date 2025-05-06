@@ -138,29 +138,42 @@
   margin-bottom: 10px;
 }
 
-.owner-card .bid-options span {
-  margin-right: 5px;
+.bid-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.bid-option {
   padding: 5px 10px;
-  border-radius: 5px;
-  background-color: rgba(255, 255, 255, 0.2); /* Light background for options */
-  color: #ffdf00; /* Yellow color for options */
+  border: 1px solid #ccc;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
+  transition: all 0.3s ease;
 }
 
-.owner-card .bid-options span:hover {
-  background-color: #007bff; /* Hover effect */
-  color: #ffffff; /* White text on hover */
+.bid-option:hover:not(.cancelled) {
+  background-color: #f0f0f0;
+  transform: scale(1.05);
 }
 
-.owner-card .bid-options span.line-through {
-  text-decoration: line-through;
-  color: red;
-}
-
-.owner-card .bid-options span.not-allowed {
+.bid-option.cancelled {
+  background-color: #ffebee;
+  border-color: #ffcdd2;
   cursor: not-allowed;
-  background-color: #ccc; /* Gray for not-allowed */
+}
+
+.bid-option.max-bid {
+  background-color: #e8f5e9;
+  border-color: #c8e6c9;
+  font-weight: bold;
+}
+
+.bid-option.highest-bid {
+  background-color: #e3f2fd;
+  border-color: #bbdefb;
+  font-weight: bold;
 }
 
 /* Buttons */
