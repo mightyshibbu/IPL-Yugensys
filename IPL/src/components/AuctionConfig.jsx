@@ -17,6 +17,20 @@ const AuctionConfig = ({
   const navigate = useNavigate();
   const [error, setError] = useState(null);
 
+  // Function to adjust pool size by multiple of total owners
+  const adjustPoolSize = (increment) => {
+    const currentPoolSize = Number(poolSize) || totalOwners;
+    const adjustment = increment ? totalOwners : -totalOwners;
+    const newPoolSize = currentPoolSize + adjustment;
+    
+    if (newPoolSize >= totalOwners && newPoolSize <= 36) {
+      setPoolSize(newPoolSize);
+      setError(null);
+    } else {
+      setError(`Pool size must be between ${totalOwners} and 36`);
+    }
+  };
+
   // Load AuctionData from localStorage when component mounts
   useEffect(() => {
     const savedData = localStorage.getItem("AuctionData");
@@ -48,7 +62,10 @@ const AuctionConfig = ({
 //   };
 
   const handleOwnersChange = (event) => {
-    setTotalOwners(event.target.value);
+    const newTotalOwners = Number(event.target.value);
+    setTotalOwners(newTotalOwners);
+    // Automatically set pool size to match total owners
+    setPoolSize(newTotalOwners);
   };
   const handleBack = () => {
     navigate("/", { replace: true })
@@ -122,13 +139,25 @@ const AuctionConfig = ({
       {/* Pool Size Input */}
       <div className="input-container">
         <label>Players Pool Size (min {totalOwners}, max 36): </label>
-        <input
-          type="number"
-          value={poolSize}
-          onChange={handlePoolSizeChange}
-          className="input-field"
-          placeholder="Enter player pool size"
-        />
+        <div className="pool-size-controls">
+          <div className="selected-pool-size">{poolSize}</div>
+          <div className="adjuster-buttons">
+            <button 
+              onClick={() => adjustPoolSize(false)} 
+              disabled={Number(poolSize) <= totalOwners}
+              className="adjust-button"
+            >
+              -{totalOwners}
+            </button>
+            <button 
+              onClick={() => adjustPoolSize(true)} 
+              disabled={Number(poolSize) + totalOwners > 36}
+              className="adjust-button"
+            >
+              +{totalOwners}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Slabs Input */}
@@ -154,6 +183,8 @@ const AuctionConfig = ({
           placeholder="Enter total units per owner"
         />
       </div>
+
+      {error && <div className="error-message">{error}</div>}
 
       <button className="ok-btn" onClick={handleOk}>
         OK

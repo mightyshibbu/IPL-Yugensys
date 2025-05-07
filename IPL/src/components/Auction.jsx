@@ -195,6 +195,9 @@ const Auction = ({ players }) => {
             currentPlayer
         });
         
+        // Reset ownersWithMaxBid when moving to next player
+        setOwnersWithMaxBid([]);
+        
         // Check if current slab has any unsold players
         const hasUnsoldPlayers = currentSlabPlayers.some(player => player !== 0);
         
@@ -518,11 +521,21 @@ const Auction = ({ players }) => {
         const owner = owners.find((o) => o.id === ownerId);
         if (!owner || !slabDetails) return;
 
-        // Check slab limit first
+        // Check if owner has already reached their fair share for this slab
         const slabPlayers = owner.slabPlayers[slabDetails.name] || [];
-        const maxPlayersPerOwner = Math.ceil(6 / owners.length); // 6 players per slab, divided by number of owners
-        if (slabPlayers.length >= maxPlayersPerOwner) {
-            alert(`Owner ${owner.id} cannot purchase more players from ${slabDetails.name} slab`);
+        const playersPerOwner = slabDetails.numPlayers / owners.length;
+        
+        if (slabPlayers.length >= playersPerOwner) {
+            alert(`Owner ${owner.id} has already reached their fair share of ${playersPerOwner} players from ${slabDetails.name} slab`);
+            return;
+        }
+
+        // Check if owner has reached their total fair share across all slabs
+        const totalPlayersOwned = Object.values(owner.slabPlayers).reduce((total, players) => total + players.length, 0);
+        const totalPlayersPerOwner = Object.values(slabsState).reduce((total, slab) => total + (slab.numPlayers / owners.length), 0);
+        
+        if (totalPlayersOwned >= totalPlayersPerOwner) {
+            alert(`Owner ${owner.id} has already reached their total fair share of ${totalPlayersPerOwner} players across all slabs`);
             return;
         }
 
@@ -541,13 +554,11 @@ const Auction = ({ players }) => {
             });
 
             if (bidValue === cur_maxBid) {
-                // Only add this owner to the list if they haven't already made the max bid
                 setOwnersWithMaxBid((prev) => {
-                    // Check if this owner has already made the max bid
                     const ownerAlreadyMaxBid = prev.some(o => o.id === owner.id);
                     if (!ownerAlreadyMaxBid) {
                         const updatedOwners = [...prev, owner];
-                        // Only select from owners who have made the max bid
+                        // Only select from owners who bid max in this round
                         const randomOwner = updatedOwners[Math.floor(Math.random() * updatedOwners.length)];
                         setHighestBid(bidValue);
                         setHighestBidder(randomOwner);
@@ -558,6 +569,8 @@ const Auction = ({ players }) => {
             } else {
                 setHighestBid(bidValue);
                 setHighestBidder(owner);
+                // Reset ownersWithMaxBid when a new highest bid is set
+                setOwnersWithMaxBid([]);
             }
 
             setTimer(180);

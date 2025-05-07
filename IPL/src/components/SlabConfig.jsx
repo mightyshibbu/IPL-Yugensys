@@ -23,6 +23,40 @@ const SlabConfig = ({
   const [reservedAmount, setReservedAmount] = useState(null); // State to store the reserved amount
   const [isOkEnabled, setIsOkEnabled] = useState(false); // State to enable the OK button
 
+  // Function to adjust pool size by multiple of total owners
+  const adjustPoolSize = (increment) => {
+    const currentPoolSize = poolSize;
+    const adjustment = increment ? totalOwners : -totalOwners;
+    const newPoolSize = currentPoolSize + adjustment;
+    
+    if (newPoolSize >= totalOwners && newPoolSize <= players.length) {
+      setPoolSize(newPoolSize);
+      setError(null);
+    } else {
+      setError(`Pool size must be between ${totalOwners} and ${players.length}`);
+    }
+  };
+
+  // Function to adjust number of players in a slab by multiple of total owners
+  const adjustSlabPlayers = (index, increment) => {
+    const updatedSlabs = [...slabsConfig];
+    const currentPlayers = Number(updatedSlabs[index].numPlayers) || 0;
+    const adjustment = increment ? totalOwners : -totalOwners;
+    const newPlayers = currentPlayers + adjustment;
+    
+    // Check if new total would exceed pool size
+    const totalPlayersInOtherSlabs = updatedSlabs.reduce((total, slab, i) => 
+      i !== index ? total + (Number(slab.numPlayers) || 0) : total, 0);
+    
+    if (newPlayers >= 0 && (totalPlayersInOtherSlabs + newPlayers) <= poolSize) {
+      updatedSlabs[index].numPlayers = newPlayers;
+      setSlabsConfig(updatedSlabs);
+      setError(null);
+    } else {
+      setError("Number of players cannot be negative and total players cannot exceed pool size");
+    }
+  };
+
   // Load config from localStorage on component mount
   useEffect(() => {
     const savedConfig = localStorage.getItem("slabsConfig");
@@ -72,28 +106,30 @@ const SlabConfig = ({
   // Handle slab changes for name, min bid, max bid, and number of players
   const handleSlabChange = (index, field, value) => {
     const updatedSlabs = [...slabsConfig];
-    updatedSlabs[index][field] = value;
+    if (field === "numPlayers") {
+      // Convert value to number and ensure it's a multiple of total owners
+      const numValue = Number(value);
+      if (isNaN(numValue) || numValue % totalOwners !== 0) {
+        setError(`Number of players must be a multiple of ${totalOwners} (total owners)`);
+        return;
+      }
+      updatedSlabs[index][field] = numValue;
+    } else {
+      updatedSlabs[index][field] = value;
+    }
     setSlabsConfig(updatedSlabs);
-  };
-
-  // Calculate the reserved amount
-  const calculateReservedAmount = () => {
-    let amount = 0;
-    slabsConfig.forEach((slab) => {
-      amount += slab.numPlayers/totalOwners * slab.basePrice;
-    });
-    setReservedAmount(amount); // Set the calculated amount
-    localStorage.setItem("ReservedAmount",amount)
-    setIsOkEnabled(true); // Enable the OK button
-  };
-
-  const handleBack = () => {
-    navigate("/auctionConfig", { replace: true });
+    setError(null);
   };
 
   // Handle when OK is clicked
   const handleOk = () => {
-    console.log("Inside HandleOK poolsize",poolSize);
+    console.log("Inside HandleOK poolsize", poolSize);
+    
+    // Check if pool size is a multiple of total owners
+    if (poolSize % totalOwners !== 0) {
+      setError(`Pool size must be a multiple of ${totalOwners} (total owners)`);
+      return;
+    }
     
     if (poolSize >= 1 && poolSize <= players.length) {
       setSlabs(slabsConfig); // Pass the configured slabs to the parent
@@ -101,6 +137,27 @@ const SlabConfig = ({
     } else {
       setError("Please enter a valid pool size between 1 and " + players.length);
     }
+  };
+
+  // Calculate the reserved amount
+  const calculateReservedAmount = () => {
+    // Check if pool size is a multiple of total owners
+    if (poolSize % totalOwners !== 0) {
+      setError(`Pool size must be a multiple of ${totalOwners} (total owners)`);
+      return;
+    }
+
+    let amount = 0;
+    slabsConfig.forEach((slab) => {
+      amount += slab.numPlayers/totalOwners * slab.basePrice;
+    });
+    setReservedAmount(amount); // Set the calculated amount
+    localStorage.setItem("ReservedAmount", amount);
+    setIsOkEnabled(true); // Enable the OK button
+  };
+
+  const handleBack = () => {
+    navigate("/auctionConfig", { replace: true });
   };
 
   return (
@@ -117,6 +174,19 @@ const SlabConfig = ({
           <button onClick={() => setNumSlabs(numSlabs + 1)} disabled={numSlabs >= 7}>
             +1
           </button>
+        </div>
+
+        <div className="pool-size-container">
+          <label>Pool Size: </label>
+          <div className="selected-pool-size">{poolSize}</div>
+          <div className="adjuster-buttons">
+            <button onClick={() => adjustPoolSize(false)} disabled={poolSize <= totalOwners}>
+              -{totalOwners}
+            </button>
+            <button onClick={() => adjustPoolSize(true)} disabled={poolSize + totalOwners > players.length}>
+              +{totalOwners}
+            </button>
+          </div>
         </div>
 
         <button onClick={handleGenerateSlabs}>Save and Generate Slabs</button>
@@ -154,12 +224,24 @@ const SlabConfig = ({
                 />
               </>
             )}
-            <label>Number of Players: </label>
-            <input
-              type="number"
-              value={slab.numPlayers}
-              onChange={(e) => handleSlabChange(index, "numPlayers", Number(e.target.value))}
-            />
+            <div className="players-container">
+              <label>Number of Players: </label>
+              <div className="selected-players">{slab.numPlayers}</div>
+              <div className="adjuster-buttons">
+                <button 
+                  onClick={() => adjustSlabPlayers(index, false)} 
+                  disabled={Number(slab.numPlayers) <= 0}
+                >
+                  -{totalOwners}
+                </button>
+                <button 
+                  onClick={() => adjustSlabPlayers(index, true)}
+                  disabled={Number(slab.numPlayers) + totalOwners > poolSize}
+                >
+                  +{totalOwners}
+                </button>
+              </div>
+            </div>
           </div>
         ))}
 
