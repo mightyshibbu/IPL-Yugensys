@@ -65,6 +65,35 @@ const DEFAULT_SLAB = {
 
 const PLAYER_IMAGES = [img1, img2, img3, img4, img5, img6, img7, img8, img9];
 
+// Add new UpcomingPlayersPanel component
+const UpcomingPlayersPanel = ({ playerDataState, currentPlayer, auctionSequence, currentSlabIndex }) => {
+    return (
+        <div className="upcoming-players-panel">
+            <h3>Upcoming Players</h3>
+            {auctionSequence.map((slabName, index) => {
+                const players = playerDataState[slabName] || [];
+                const unsoldPlayers = players.filter(player => player !== 0);
+                
+                return (
+                    <div key={slabName} className={`slab-section ${index === currentSlabIndex ? 'current-slab' : ''}`}>
+                        <h4>{slabName}</h4>
+                        <div className="players-list">
+                            {unsoldPlayers.map((player) => (
+                                <div 
+                                    key={player.PID} 
+                                    className={`player-name ${currentPlayer && player.PID === currentPlayer.PID ? 'current-player' : ''}`}
+                                >
+                                    {player.PName}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
 const Auction = ({ players }) => {
     // State hooks
     const [currentSlabIndex, setCurrentSlabIndex] = useState(0);
@@ -604,41 +633,49 @@ const Auction = ({ players }) => {
                         <h2>Upcoming Slab: {upcomingSlab}</h2>
                     </div>
                 )}
-                {renderPlayerCard(
-                    currentPlayer,
-                    (index) => getPlayerImage(currentPlayer, img10, PLAYER_IMAGES, index),
-                    currentSlabIndex,
-                    slabDetails,
-                    numberOfPlayersLeft
-                )}
-                <div style={{ flexGrow: 1, marginLeft: "20px" }}>
-                    {renderBidInfo(
-                        highestBid,
-                        highestBidder,
-                        Object.values(playerDataState).flat().length,
-                        owners.length,
-                        slabsState.length,
-                        timer,
-                        isStarted
+                <div className="main-content">
+                    {renderPlayerCard(
+                        currentPlayer,
+                        (index) => getPlayerImage(currentPlayer, img10, PLAYER_IMAGES, index),
+                        currentSlabIndex,
+                        slabDetails,
+                        numberOfPlayersLeft
                     )}
-                    {renderOwnerCards(
-                        owners,
-                        highestBidder,
-                        isStopped,
-                        (owner) => {
-                            return renderBidOptions(
-                                owner,
-                                isStarted,
-                                (ownerId) => ifFullyFilled(ownerId, owners, Object.values(playerDataState).flat().length, slabDetails),
-                                currentPlayer,
-                                slabDetails,
-                                highestBid,
-                                handleBidClick,
-                                owners.length
-                            );
-                        }
-                    )}
+                    <div style={{ flexGrow: 1, marginLeft: "20px" }}>
+                        {renderBidInfo(
+                            highestBid,
+                            highestBidder,
+                            Object.values(playerDataState).flat().length,
+                            owners.length,
+                            slabsState.length,
+                            timer,
+                            isStarted
+                        )}
+                        {renderOwnerCards(
+                            owners,
+                            highestBidder,
+                            isStopped,
+                            (owner) => {
+                                return renderBidOptions(
+                                    owner,
+                                    isStarted,
+                                    (ownerId) => ifFullyFilled(ownerId, owners, Object.values(playerDataState).flat().length, slabDetails),
+                                    currentPlayer,
+                                    slabDetails,
+                                    highestBid,
+                                    handleBidClick,
+                                    owners.length
+                                );
+                            }
+                        )}
+                    </div>
                 </div>
+                <UpcomingPlayersPanel 
+                    playerDataState={playerDataState}
+                    currentPlayer={currentPlayer}
+                    auctionSequence={auctionSequence}
+                    currentSlabIndex={currentSlabIndex}
+                />
             </div>
             {renderControlButtons(
                 () => handleStart(setIsStarted, setIsStopped, () => saveAuctionState(

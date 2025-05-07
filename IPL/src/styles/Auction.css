@@ -11,6 +11,7 @@
   box-sizing: border-box;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding-right: 320px; /* Make space for the panel */
 }
 /* Timer styling */
 .timer {
@@ -318,4 +319,74 @@ button:disabled {
     20% { opacity: 1; }
     80% { opacity: 1; }
     100% { opacity: 0; }
+}
+
+/* Upcoming Players Panel Styles */
+.upcoming-players-panel {
+    background-color: #f5f5f5;
+    border-left: 1px solid #ddd;
+    padding: 20px;
+    width: 300px;
+    height: 100vh;
+    overflow-y: auto;
+    position: fixed;
+    right: 0;
+    top: 0;
+}
+
+.upcoming-players-panel h3 {
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+.slab-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.slab-section.current-slab {
+    border: 2px solid #4CAF50;
+    background-color: #f0fff0;
+}
+
+.slab-section h4 {
+    color: #444;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.players-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.player-name {
+    padding: 8px 12px;
+    background-color: #f8f8f8;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.player-name.current-player {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+    transform: scale(1.02);
+}
+
+/* Adjust main content to accommodate the panel */
+.main-content {
+    flex: 1;
+    display: flex;
+    gap: 20px;
+    padding: 20px;
 }
