@@ -31,6 +31,11 @@ const HomePage = ({poolSize,configTime,numSlabs,totalOwners}) => {
     setShowInstructions(false);
   };
 
+  const handleClearSettings = () => {
+    localStorage.clear();
+    window.location.reload();
+  };
+
   return (
     <div className="homepage-container">
       {/* Rotating Image */}
@@ -52,13 +57,14 @@ const HomePage = ({poolSize,configTime,numSlabs,totalOwners}) => {
         <label className='auction-btn'>Timer(sec): {configTime}</label>
         <label className='auction-btn'>Owners: {totalOwners}</label>
         <label className='auction-btn'>Slabs: {numSlabs}</label>
-        </div>
+      </div>
       <div className="button-container">
-      <button className="auction-instruction-btn" onClick={handleShowInstructions}>Instructions</button>
-        </div>
-        <div>
-      {showInstructions && <Instructions onClose={handleCloseInstructions} />}
-    </div>
+        <button className="auction-instruction-btn" onClick={handleShowInstructions}>Instructions</button>
+        <button className="auction-instruction-btn clear-settings-btn" onClick={handleClearSettings}>Clear Auction Settings</button>
+      </div>
+      <div>
+        {showInstructions && <Instructions onClose={handleCloseInstructions} />}
+      </div>
     </div>
     
   );

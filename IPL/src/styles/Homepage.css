@@ -132,6 +132,18 @@ body {
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
 }
 
+/* Clear Settings Button */
+.clear-settings-btn {
+  background-color: #ff4444;
+  color: white;
+}
+
+.clear-settings-btn:hover {
+  background-color: #ff0000;
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3);
+}
+
 /* Labels for Pool Size and Bid Time */
 label.auction-btn {
   font-size: 1rem;

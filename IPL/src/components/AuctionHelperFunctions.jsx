@@ -294,7 +294,8 @@ export const renderBidOptions = (
   currentPlayer,
   slabDetails,
   highestBid,
-  handleBidClick
+  handleBidClick,
+  totalOwners
 ) => {
   if (!isStarted || !currentPlayer || !slabDetails || !ifFullyFilled(owner.id) || currentPlayer.PID === 9999) {
     return null;
@@ -303,7 +304,14 @@ export const renderBidOptions = (
   const basePrice = slabDetails.basePrice;
   const maxBid = slabDetails.maxBid;
   const bidIncrement = 50;
-  const reservedAmount = 1000; // Minimum amount to keep in reserve
+
+  // Calculate remaining players needed for this owner
+  const remainingPlayersNeeded = Math.ceil((slabDetails.numPlayers || 0) / totalOwners);
+  const playersPurchased = owner.purchasedPlayers.length;
+  const playersLeftToBuy = remainingPlayersNeeded - playersPurchased;
+
+  // Calculate minimum reserved amount needed for remaining players
+  const minReservedAmount = playersLeftToBuy * basePrice;
 
   // Calculate all possible bid values
   const allBids = [];
@@ -311,17 +319,26 @@ export const renderBidOptions = (
     allBids.push(bid);
   }
 
-  // Filter bids based on owner's available units
+  // Filter bids based on owner's available units and required reserved amount
   const validBids = allBids.filter(bid => 
-    (owner.unitsLeft - bid) >= reservedAmount
+    (owner.unitsLeft - bid) >= minReservedAmount
   );
 
   if (validBids.length === 0) {
-    return null;
+    return (
+      <div className="bid-options">
+        <div className="no-valid-bids">
+          Insufficient funds to maintain required reserve for remaining players
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="bid-options">
+      <div className="reserve-info">
+        Required Reserve: {minReservedAmount} units
+      </div>
       Available Bids:
       {validBids.map(bidValue => {
         const isCancelled = bidValue < highestBid;

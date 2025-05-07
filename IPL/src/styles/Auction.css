@@ -117,63 +117,146 @@
 
 /* Owners section */
 .owner-card {
-  border: 1px solid rgba(255, 255, 255, 0.2); /* Light border for owner card */
-  padding: 15px;
-  margin-bottom: 14px;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 20px;
+  margin-bottom: 20px;
+  background-color: rgba(43, 88, 118, 0.8);
+  border-radius: 12px;
   margin-left: 15px;
-  min-width: max-content;
+  min-width: 300px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .owner-card div {
-  margin-top: 10px;
-  margin-right: 100px;
-  margin-bottom: 8px;
-  color: #ffdf00; /* Yellow color for owner card text */
+  margin: 12px 0;
+  color: #ffffff;
   font-size: 16px;
 }
 
 .owner-card .bid-options {
-  margin-bottom: 10px;
+  margin: 15px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .bid-options {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 10px;
-  margin: 10px 0;
+  margin-top: 10px;
 }
 
 .bid-option {
-  padding: 5px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 8px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  margin: 4px;
+  display: inline-block;
+}
+
+.bid-option:hover:not(.cancelled) {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+  border-color: #ffdf00;
+}
+
+.bid-option.cancelled {
+  background-color: rgba(255, 0, 0, 0.2);
+  border-color: rgba(255, 0, 0, 0.3);
+  cursor: not-allowed;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.bid-option.max-bid {
+  background-color: rgba(0, 255, 0, 0.2);
+  border-color: rgba(0, 255, 0, 0.3);
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.bid-option.highest-bid {
+  background-color: rgba(0, 0, 255, 0.2);
+  border-color: rgba(0, 0, 255, 0.3);
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.reserve-info {
+  background-color: rgba(43, 88, 118, 0.9);
+  padding: 10px 15px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 223, 0, 0.3);
+  color: #ffdf00;
+  font-size: 0.95em;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.no-valid-bids {
+  color: #ff4444;
+  padding: 10px 15px;
+  background-color: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  border-radius: 6px;
+  font-size: 0.95em;
+  text-align: center;
+}
+
+/* Owner card button */
+.owner-card button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  background-color: #ffdf00;
+  color: #2b5876;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.bid-option:hover:not(.cancelled) {
-  background-color: #f0f0f0;
-  transform: scale(1.05);
+.owner-card button:hover:not(:disabled) {
+  background-color: #ffcf00;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.bid-option.cancelled {
-  background-color: #ffebee;
-  border-color: #ffcdd2;
+.owner-card button:disabled {
+  background-color: rgba(128, 128, 128, 0.5);
+  color: rgba(255, 255, 255, 0.5);
   cursor: not-allowed;
 }
 
-.bid-option.max-bid {
-  background-color: #e8f5e9;
-  border-color: #c8e6c9;
+/* Owner card header */
+.owner-card > div:first-child {
+  font-size: 1.2em;
   font-weight: bold;
+  color: #ffdf00;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.bid-option.highest-bid {
-  background-color: #e3f2fd;
-  border-color: #bbdefb;
-  font-weight: bold;
+/* Units left display */
+.owner-card > div:nth-child(2) {
+  font-size: 1.1em;
+  color: #ffffff;
+  margin-bottom: 15px;
+}
+
+/* Purchased players display */
+.owner-card > div:nth-last-child(2) {
+  font-size: 0.9em;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* Buttons */

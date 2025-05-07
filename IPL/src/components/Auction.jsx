@@ -616,18 +616,6 @@ const Auction = ({ players }) => {
                         highestBidder,
                         isStopped,
                         (owner) => {
-                            // console.log('Rendering bid options for owner:', {
-                            //     ownerId: owner.id,
-                            //     slabDetails,
-                            //     currentPlayer,
-                            //     isStarted
-                            // });
-                            
-                            if (!slabDetails || !currentPlayer) {
-                                console.log('Missing required data for bid options');
-                                return null;
-                            }
-                            
                             return renderBidOptions(
                                 owner,
                                 isStarted,
@@ -635,7 +623,8 @@ const Auction = ({ players }) => {
                                 currentPlayer,
                                 slabDetails,
                                 highestBid,
-                                handleBidClick
+                                handleBidClick,
+                                owners.length
                             );
                         }
                     )}
