@@ -59,7 +59,8 @@ const initializeDatabase = () => {
     const createAuctionsTable = `
       CREATE TABLE IF NOT EXISTS auctions (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        owners JSON
+        owners JSON,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )`;
 
     db.query(createAuctionsTable, (err) => {
@@ -68,6 +69,41 @@ const initializeDatabase = () => {
         return;
       }
       console.log('Auctions table created or already exists');
+
+      // Add created_at column if it doesn't exist
+      db.query(`SHOW COLUMNS FROM auctions LIKE 'created_at'`, (err, results) => {
+        if (err) {
+          console.error('Error checking created_at column:', err);
+          return;
+        }
+        
+        if (results.length === 0) {
+          // Add created_at column with default value
+          db.query(`
+            ALTER TABLE auctions 
+            ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          `, (err) => {
+            if (err) {
+              console.error('Error adding created_at column:', err);
+              return;
+            }
+            console.log('Added created_at column to auctions table');
+            
+            // Update existing records with current timestamp
+            db.query(`
+              UPDATE auctions 
+              SET created_at = CURRENT_TIMESTAMP 
+              WHERE created_at IS NULL
+            `, (err) => {
+              if (err) {
+                console.error('Error updating existing records:', err);
+                return;
+              }
+              console.log('Updated timestamps for existing records');
+            });
+          });
+        }
+      });
     });
   });
 };
@@ -109,7 +145,7 @@ app.get('/api/getAllPlayers', (req, res) => {
         slabPlayers: JSON.stringify(owner.slabPlayers),
       })),
     };
-    const sql = 'INSERT INTO auctions (owners) VALUES (?)';
+    const sql = 'INSERT INTO auctions (owners, created_at) VALUES (?, CURRENT_TIMESTAMP)';
     db.query(sql, [JSON.stringify(auctionData)], (err, result) => {
       if (err) {
         console.error('Error saving auction data:', err);
@@ -121,12 +157,12 @@ app.get('/api/getAllPlayers', (req, res) => {
 
 // Get Previous Auctions
 app.get('/api/auctions', (req, res) => {
-    db.query('SELECT * FROM auctions', (err, rows) => {
+    db.query('SELECT id, owners, DATE_FORMAT(created_at, "%Y-%m-%d %H:%i:%s") as created_at FROM auctions', (err, rows) => {
         if (err) {
             console.error('Error retrieving auctions:', err);
             return res.status(500).json({ error: 'Internal Server Error' });
         }
-        console.log(rows);
+        console.log('Retrieved auctions:', rows);
         res.json(rows);
     });
 });

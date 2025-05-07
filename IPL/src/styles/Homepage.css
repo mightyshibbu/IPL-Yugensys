@@ -7,8 +7,8 @@
   }
 }
 
-/* Add this to prevent body scrolling */
-body {
+/* Add this to prevent body scrolling only on homepage */
+body.homepage {
   margin: 0;
   padding: 0;
   overflow: hidden;

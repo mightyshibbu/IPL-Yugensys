@@ -541,11 +541,7 @@ const Auction = ({ players }) => {
 
         const cur_maxBid = slabDetails.maxBid;
 
-        if (
-            owner.unitsLeft >= bidValue &&
-            bidValue >= highestBid &&
-            owner !== highestBidder
-        ) {
+        if (owner.unitsLeft >= bidValue && bidValue >= highestBid) {
             console.log('Setting highest bidder:', {
                 ownerId,
                 bidValue,
@@ -554,11 +550,12 @@ const Auction = ({ players }) => {
             });
 
             if (bidValue === cur_maxBid) {
-                setOwnersWithMaxBid((prev) => {
+                // If this is a max bid, add the owner to the list of max bidders
+                setOwnersWithMaxBid(prev => {
                     const ownerAlreadyMaxBid = prev.some(o => o.id === owner.id);
                     if (!ownerAlreadyMaxBid) {
                         const updatedOwners = [...prev, owner];
-                        // Only select from owners who bid max in this round
+                        // Randomly select from all owners who bid max
                         const randomOwner = updatedOwners[Math.floor(Math.random() * updatedOwners.length)];
                         setHighestBid(bidValue);
                         setHighestBidder(randomOwner);
@@ -566,11 +563,24 @@ const Auction = ({ players }) => {
                     }
                     return prev;
                 });
-            } else {
+            } else if (bidValue > highestBid) {
+                // If this is a new highest bid (but not max), clear max bidders and set new highest bidder
                 setHighestBid(bidValue);
                 setHighestBidder(owner);
-                // Reset ownersWithMaxBid when a new highest bid is set
                 setOwnersWithMaxBid([]);
+            } else if (bidValue === highestBid) {
+                // If this is the same as current highest bid, add to potential winners
+                setOwnersWithMaxBid(prev => {
+                    const ownerAlreadyMaxBid = prev.some(o => o.id === owner.id);
+                    if (!ownerAlreadyMaxBid) {
+                        const updatedOwners = [...prev, owner];
+                        // Randomly select from all owners who bid this amount
+                        const randomOwner = updatedOwners[Math.floor(Math.random() * updatedOwners.length)];
+                        setHighestBidder(randomOwner);
+                        return updatedOwners;
+                    }
+                    return prev;
+                });
             }
 
             setTimer(180);

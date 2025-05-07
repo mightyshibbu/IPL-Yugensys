@@ -16,22 +16,27 @@ const PreviousAuctions = () => {
                     throw new Error('Failed to fetch auctions');
                 }
                 const data = await response.json();
+                console.log('Raw auction data:', data);
                 
                 // Parse `purchasedPlayers` and `slabPlayers` if they are strings
-                const parsedData = data.map(auction => ({
-                    ...auction,
-                    owners: {
-                        owners: auction.owners.owners.map(owner => ({
-                            ...owner,
-                            purchasedPlayers: typeof owner.purchasedPlayers === 'string' 
-                                ? JSON.parse(owner.purchasedPlayers) 
-                                : owner.purchasedPlayers,
-                            slabPlayers: typeof owner.slabPlayers === 'string' 
-                                ? JSON.parse(owner.slabPlayers) 
-                                : owner.slabPlayers,
-                        })),
-                    },
-                }));
+                const parsedData = data.map(auction => {
+                    console.log('Processing auction:', auction);
+                    console.log('Created at:', auction.created_at);
+                    return {
+                        ...auction,
+                        owners: {
+                            owners: auction.owners.owners.map(owner => ({
+                                ...owner,
+                                purchasedPlayers: typeof owner.purchasedPlayers === 'string' 
+                                    ? JSON.parse(owner.purchasedPlayers) 
+                                    : owner.purchasedPlayers,
+                                slabPlayers: typeof owner.slabPlayers === 'string' 
+                                    ? JSON.parse(owner.slabPlayers) 
+                                    : owner.slabPlayers,
+                            })),
+                        },
+                    };
+                });
 
                 setAuctions(parsedData);
             } catch (err) {
@@ -140,7 +145,20 @@ const PreviousAuctions = () => {
                                 ))}
                             </div>
                         </td>
-                        <td>{new Date(auction.created_at).toLocaleString()}</td>
+                        <td>
+                            {auction.created_at ? (
+                                new Date(auction.created_at).toLocaleString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    second: '2-digit'
+                                })
+                            ) : (
+                                <span style={{ color: '#ffdf00' }}>Auction #{auction.id}</span>
+                            )}
+                        </td>
                     </tr>
                 ))}
             </tbody>

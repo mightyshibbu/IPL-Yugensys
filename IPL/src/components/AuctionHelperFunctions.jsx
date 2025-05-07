@@ -269,7 +269,7 @@ export const renderOwnerCards = (
   owners.map((owner) => (
     <div key={owner.id} className="owner-card">
       {owner.id == 1 ? (
-        <div>Owner {owner.id} (PRANAV TRIPATHI)</div>
+        <div>Owner {owner.id}</div>
       ) : (
         <div>Owner {owner.id}</div>
       )}

@@ -1,11 +1,60 @@
-import React ,{useState}from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/Homepage.css'; // Assuming you will style this separately
 import { useNavigate } from 'react-router-dom';
 import waterImage from '../static/water.png';
 import Instructions from './Instructions'
-const HomePage = ({poolSize,configTime,numSlabs,totalOwners}) => {
+
+const HomePage = () => {
   const navigate = useNavigate();
   const [showInstructions, setShowInstructions] = useState(false);
+  const [configData, setConfigData] = useState({
+    poolSize: 12,
+    configTime: 180,
+    numSlabs: 0,
+    totalOwners: 3
+  });
+
+  // Add and remove homepage class on mount/unmount
+  useEffect(() => {
+    document.body.classList.add('homepage');
+    return () => {
+      document.body.classList.remove('homepage');
+    };
+  }, []);
+
+  // Load configuration data from localStorage
+  useEffect(() => {
+    const loadConfigData = () => {
+      try {
+        // Load auction configuration
+        const auctionConfigRaw = localStorage.getItem("AuctionData");
+        if (auctionConfigRaw) {
+          const auctionConfig = JSON.parse(auctionConfigRaw);
+          setConfigData(prev => ({
+            ...prev,
+            poolSize: auctionConfig.poolSize || 12,
+            configTime: auctionConfig.configTime || 180,
+            totalOwners: auctionConfig.totalOwners || 3
+          }));
+        }
+
+        // Load slabs configuration
+        const slabsConfigRaw = localStorage.getItem("slabsConfig");
+        if (slabsConfigRaw) {
+          const slabsConfig = JSON.parse(slabsConfigRaw);
+          setConfigData(prev => ({
+            ...prev,
+            numSlabs: slabsConfig.length || 0
+          }));
+        }
+      } catch (error) {
+        console.error('Error loading configuration:', error);
+      }
+    };
+
+    loadConfigData();
+  }, []);
+
   const handleConfig = () => {
     console.log("Navigating to Configuration");
     navigate("/auctionConfig", { replace: true });
@@ -13,14 +62,76 @@ const HomePage = ({poolSize,configTime,numSlabs,totalOwners}) => {
 
   const handleBeginAuction = () => {
     console.log("Beginning Auction");
-    // Add your auction starting logic here
-    navigate("/auction", { replace: true }); // Assuming you have an auction route
+    
+    // Check for all required configurations
+    const requiredConfigs = {
+      "AuctionData": "Auction configuration (timer, owners, pool size, units)",
+      "PlayerData": "Player data",
+      "slabsConfig": "Slab configurations",
+      "AuctionSequence": "Auction sequence",
+      "OwnerUnits": "Owner units allocation"
+    };
+
+    const missingConfigs = [];
+    
+    // Check each required configuration
+    for (const [key, description] of Object.entries(requiredConfigs)) {
+      const config = localStorage.getItem(key);
+      if (!config) {
+        missingConfigs.push(description);
+      }
+    }
+
+    // If any configurations are missing, show alert and return
+    if (missingConfigs.length > 0) {
+      alert(`Cannot begin auction. Missing required configurations:\n${missingConfigs.join('\n')}\n\nPlease configure all settings before beginning the auction.`);
+      return;
+    }
+
+    // Validate the configurations
+    try {
+      const auctionData = JSON.parse(localStorage.getItem("AuctionData"));
+      const playerData = JSON.parse(localStorage.getItem("PlayerData"));
+      const slabsConfig = JSON.parse(localStorage.getItem("slabsConfig"));
+      const auctionSequence = JSON.parse(localStorage.getItem("AuctionSequence"));
+      const ownerUnits = JSON.parse(localStorage.getItem("OwnerUnits"));
+
+      // Validate auction data
+      if (!auctionData.configTime || !auctionData.totalOwners || !auctionData.poolSize || !auctionData.units) {
+        throw new Error("Invalid auction configuration");
+      }
+
+      // Validate player data
+      if (Object.keys(playerData).length === 0) {
+        throw new Error("No players configured");
+      }
+
+      // Validate slabs configuration
+      if (!Array.isArray(slabsConfig) || slabsConfig.length === 0) {
+        throw new Error("Invalid slabs configuration");
+      }
+
+      // Validate auction sequence
+      if (!Array.isArray(auctionSequence) || auctionSequence.length === 0) {
+        throw new Error("Invalid auction sequence");
+      }
+
+      // Validate owner units
+      if (Object.keys(ownerUnits).length !== auctionData.totalOwners) {
+        throw new Error("Invalid owner units allocation");
+      }
+
+      // If all validations pass, navigate to auction
+      navigate("/auction", { replace: true });
+    } catch (error) {
+      alert(`Error validating configurations: ${error.message}\nPlease ensure all settings are properly configured.`);
+      return;
+    }
   };
 
   const handleViewPrevious = () => {
-    console.log("Viewing Previous Auction s");
-    // Add your logic to view previous auctions
-    navigate("/previousAuctions", { replace: true }); // Assuming you have a previous auctions route
+    console.log("Viewing Previous Auctions");
+    navigate("/previousAuctions", { replace: true });
   };
 
   const handleShowInstructions = () => {
@@ -45,7 +156,6 @@ const HomePage = ({poolSize,configTime,numSlabs,totalOwners}) => {
       <header className="auction-header" style={{marginBottom:"30px"}}>
         <h1>IPL LIVE AUCTION</h1>
         <h1>v4.1</h1>
-
       </header>
       <div className="button-container">
         <button className="auction-btn" onClick={handleConfig}>Configure</button>
@@ -53,10 +163,10 @@ const HomePage = ({poolSize,configTime,numSlabs,totalOwners}) => {
         <button className="auction-btn" onClick={handleViewPrevious}>View History</button>
       </div>
       <div className="button-container">
-        <label className='auction-btn'>Pool Size: {poolSize}</label>
-        <label className='auction-btn'>Timer(sec): {configTime}</label>
-        <label className='auction-btn'>Owners: {totalOwners}</label>
-        <label className='auction-btn'>Slabs: {numSlabs}</label>
+        <label className='auction-btn'>Pool Size: {configData.poolSize}</label>
+        <label className='auction-btn'>Timer(sec): {configData.configTime}</label>
+        <label className='auction-btn'>Owners: {configData.totalOwners}</label>
+        <label className='auction-btn'>Slabs: {configData.numSlabs}</label>
       </div>
       <div className="button-container">
         <button className="auction-instruction-btn" onClick={handleShowInstructions}>Instructions</button>
@@ -66,7 +176,6 @@ const HomePage = ({poolSize,configTime,numSlabs,totalOwners}) => {
         {showInstructions && <Instructions onClose={handleCloseInstructions} />}
       </div>
     </div>
-    
   );
 };
 
