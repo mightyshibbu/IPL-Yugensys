@@ -7,6 +7,15 @@
   }
 }
 
+/* Add this to prevent body scrolling */
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
 .homepage-container {
   animation: fadeIn 1s ease-in forwards;
   opacity: 0;
@@ -14,12 +23,16 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  position: relative; /* Ensures child elements are positioned relative to this container */
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
   background: linear-gradient(135deg, #2b5876, #4e4376);
   color: #ffffff;
   font-family: 'Roboto', sans-serif;
   text-align: center;
+  overflow: hidden;
 }
 
 /* Header section */
@@ -44,6 +57,7 @@
   gap: 20px;
   margin-bottom: 30px;
   z-index: 2; /* Ensure buttons are in front of the rotating image */
+  flex-wrap: wrap;
 }
 
 /* Auction buttons styling */
@@ -62,8 +76,6 @@
 
 .auction-instruction-btn {
   padding: 8px 30px;
-  position: relative;
-  margin-top: 120px;
   font-size: 0.8rem;
   font-weight: bold;
   background-color: #ffdf00;
@@ -73,29 +85,38 @@
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   transition: all 0.3s ease;
+  margin-top: 20px;
 }
+
 /* Rotating image */
 .rotating-image-container {
-  position: absolute; /* Change to absolute to keep it inside the container */
-  top: 160.50%;
-  left: 136%;
-  transform: translate(-50%, -50%); /* Center the image */
-  z-index: 1; /* Ensure it's behind the buttons */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .rotating-image {
-  width: auto; /* Adjust the size as needed */
-  height: auto;
-  animation: rotate 300s linear infinite; /* Controls the speed and repetition */
-  opacity: 0.7; /* Adjust transparency to avoid overpowering the content */
+  width: 120vw;
+  height: 120vw;
+  position: absolute;
+  top: -5vw;
+  left: 20vw;
+  object-fit: none;
+  animation: rotate 300s linear infinite;
+  opacity: 0.7;
 }
 
 /* Animation for rotating the image */
 @keyframes rotate {
-  0% {
+  from {
     transform: translate(-50%, -50%) rotate(0deg);
   }
-  100% {
+  to {
     transform: translate(-50%, -50%) rotate(360deg);
   }
 }
@@ -136,5 +157,21 @@ label.auction-btn {
   .button-container {
     flex-direction: column;
     gap: 15px;
+  }
+
+  .rotating-image {
+    width: 90vh;
+    height: 90vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .auction-header h1 {
+    font-size: 2rem;
+  }
+
+  .rotating-image {
+    width: 100vh;
+    height: 100vh;
   }
 }

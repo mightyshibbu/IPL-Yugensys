@@ -29,37 +29,115 @@
   
 // export default Instructions;
 import React, { useEffect, useState } from 'react';
-import '../styles/Instructions.css'; // Ensure this path is correct
+import '../styles/Instructions.css';
 
 const Instructions = ({ onClose }) => {
-  const [fadeIn, setFadeIn] = useState(false); // State to control fade-in effect
+  const [fadeIn, setFadeIn] = useState(false);
 
   useEffect(() => {
-    // Timeout to trigger the fade-in effect
     const timer = setTimeout(() => {
-      setFadeIn(true); // Set fade-in to true after 50ms
-    }, 50); // Slight delay for effect
-    return () => clearTimeout(timer); // Cleanup on unmount
+      setFadeIn(true);
+    }, 50);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <div className="modal-backdrop">
       <div className={`modal-content ${fadeIn ? 'fade-in' : ''}`}>
-        <h2>Instructions</h2>
-        <p><strong>Welcome to the Auction System!</strong></p>
-        <p>In this auction, a total of <strong>3 team owners</strong> will be bidding for players. The pool of players consists of <strong>21 players</strong>, which will be equally divided among the 3 teams.</p>
+        <h2>Auction Rules and Instructions</h2>
         
-        <p>Players are categorized into <strong>5 different slabs</strong>:</p>
-        <div className="slab-info">
-          <p><strong>Slab A:</strong> 6 players</p>
-          <p><strong>Slab B:</strong> 6 players</p>
-          <p><strong>Slab C:</strong> 6 players</p>
-          <p><strong>Slab D:</strong> 3 players</p>
-          <p><strong>Slab E:</strong> 3 players</p>
-        </div>
-        
-        <p>Each team owner will be allocated <strong>2,500 units</strong> to bid on players. In the event of a tie at the maximum bid for a player, the player will be awarded via a <strong>chit system</strong>.</p>
-        
+        <h3>1. Basic Configuration</h3>
+        <ul>
+          <li>Number of owners: 2-6 owners can participate in the auction</li>
+          <li>Pool size: Must be a multiple of the number of owners (e.g., for 4 owners, pool size can be 4, 8, 12, etc.)</li>
+          <li>Maximum pool size: 36 players</li>
+          <li>Bid timer: Configurable between 5-200 seconds</li>
+        </ul>
+
+        <h3>2. Slab Configuration</h3>
+        <ul>
+          <li>Number of slabs: 1-7 slabs can be created</li>
+          <li>Each slab must have:
+            <ul>
+              <li>A unique name</li>
+              <li>A base price (minimum bid)</li>
+              <li>Optional maximum bid cap</li>
+              <li>Number of players (must be a multiple of total owners)</li>
+            </ul>
+          </li>
+        </ul>
+
+        <h3>3. Fair Distribution Rules</h3>
+        <ul>
+          <li>Equal Distribution:
+            <ul>
+              <li>Players must be distributed equally among all owners</li>
+              <li>Each owner gets an equal share of players from each slab</li>
+              <li>Total players per owner = Total pool size ÷ Number of owners</li>
+            </ul>
+          </li>
+          <li>Slab-wise Distribution:
+            <ul>
+              <li>Players in each slab must be a multiple of the number of owners</li>
+              <li>Each owner gets equal number of players from each slab</li>
+              <li>Example: For 4 owners and 8 players in a slab, each owner gets 2 players</li>
+            </ul>
+          </li>
+        </ul>
+
+        <h3>4. Bidding Rules</h3>
+        <ul>
+          <li>Bid Amount:
+            <ul>
+              <li>Must be at least equal to the base price of the slab</li>
+              <li>Cannot exceed the owner's remaining units</li>
+              <li>Must be higher than the current highest bid</li>
+            </ul>
+          </li>
+          <li>Maximum Bid Cap:
+            <ul>
+              <li>If enabled for a slab, bids cannot exceed the maximum bid cap</li>
+              <li>When multiple owners bid the maximum amount, random selection occurs</li>
+            </ul>
+          </li>
+        </ul>
+
+        <h3>5. Random Selection Process</h3>
+        <ul>
+          <li>When multiple owners bid the maximum amount:
+            <ul>
+              <li>Only owners who bid the maximum amount in the current round are considered</li>
+              <li>Previous rounds' bids are not considered</li>
+              <li>One owner is randomly selected from the current maximum bidders</li>
+              <li>The selection is independent for each player</li>
+            </ul>
+          </li>
+          <li>Example:
+            <ul>
+              <li>Player 1: If Owner 1 bids max, they get the player</li>
+              <li>Player 2: If Owner 2 bids max, they get the player</li>
+              <li>Player 3: If Owners 1 and 2 both bid max, one is randomly selected</li>
+            </ul>
+          </li>
+        </ul>
+
+        <h3>6. Player Assignment</h3>
+        <ul>
+          <li>Automatic Assignment:
+            <ul>
+              <li>When timer reaches zero, player is assigned to highest bidder</li>
+              <li>If multiple maximum bids, random selection occurs</li>
+              <li>Owner's units are deducted by the bid amount</li>
+            </ul>
+          </li>
+          <li>Fair Share Enforcement:
+            <ul>
+              <li>Owners cannot bid if they've reached their fair share for a slab</li>
+              <li>Owners cannot bid if they've reached their total fair share across all slabs</li>
+            </ul>
+          </li>
+        </ul>
+
         <button className="close-btn" onClick={onClose}>Close</button>
       </div>
     </div>
