@@ -4,7 +4,7 @@
   /* flex-direction: column; Changed to column layout */
   padding: 20px;
   font-family: 'Roboto', sans-serif;
-  background: linear-gradient(135deg, #2b5876, #4e4376);
+  background: linear-gradient(135deg, #1a2a3a, #2b3a4a);
   color: #ffffff;
   width: 97vw;
   height: auto; /* Set height to auto to allow dynamic growth */
@@ -79,6 +79,9 @@
   font-size: 18px;
   color: #ffffff; /* White color for player name */
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .player-card .important-text {
@@ -118,10 +121,10 @@
 
 /* Owners section */
 .owner-card {
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #3a4a5a;
   padding: 20px;
   margin-bottom: 20px;
-  background-color: rgba(43, 88, 118, 0.8);
+  background-color: #2b3a4a;
   border-radius: 12px;
   margin-left: 15px;
   min-width: 300px;
@@ -150,18 +153,18 @@
 
 .bid-option {
   padding: 8px 15px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid #3a4a5a;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #2b3a4a;
   color: #ffffff;
   margin: 4px;
   display: inline-block;
 }
 
 .bid-option:hover:not(.cancelled) {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: #3a4a5a;
   transform: scale(1.05);
   border-color: #ffdf00;
 }
@@ -188,10 +191,10 @@
 }
 
 .reserve-info {
-  background-color: rgba(43, 88, 118, 0.9);
+  background-color: #2b3a4a;
   padding: 10px 15px;
   border-radius: 6px;
-  border: 1px solid rgba(255, 223, 0, 0.3);
+  border: 1px solid #ffdf00;
   color: #ffdf00;
   font-size: 0.95em;
   margin-bottom: 10px;
@@ -201,8 +204,8 @@
 .no-valid-bids {
   color: #ff4444;
   padding: 10px 15px;
-  background-color: rgba(255, 68, 68, 0.1);
-  border: 1px solid rgba(255, 68, 68, 0.3);
+  background-color: #2b3a4a;
+  border: 1px solid #ff4444;
   border-radius: 6px;
   font-size: 0.95em;
   text-align: center;
@@ -241,7 +244,7 @@
   color: #ffdf00;
   margin-bottom: 15px;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid #3a4a5a;
 }
 
 /* Units left display */
@@ -252,12 +255,34 @@
 }
 
 /* Purchased players display */
-.owner-card > div:nth-last-child(2) {
+.purchased-players {
   font-size: 0.9em;
   color: rgba(255, 255, 255, 0.8);
   margin-top: 15px;
   padding-top: 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.players-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.player-name {
+  color: #ffffff;
+}
+
+.player-name.sold {
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: line-through;
+}
+
+.buyer-info {
+  color: #ffdf00;
+  font-size: 0.9em;
+  margin-left: 4px;
+  font-weight: bold;
 }
 
 /* Buttons */
@@ -323,8 +348,8 @@ button:disabled {
 
 /* Upcoming Players Panel Styles */
 .upcoming-players-panel {
-    background-color: #f5f5f5;
-    border-left: 1px solid #ddd;
+    background-color: #1a2a3a;
+    border-left: 1px solid #2b3a4a;
     padding: 20px;
     width: 300px;
     height: 100vh;
@@ -332,33 +357,37 @@ button:disabled {
     position: fixed;
     right: 0;
     top: 0;
+    color: #ffffff;
 }
 
 .upcoming-players-panel h3 {
-    color: #333;
+    color: #ffdf00;
     margin-bottom: 20px;
     text-align: center;
     font-size: 1.5rem;
+    border-bottom: 2px solid #ffdf00;
+    padding-bottom: 10px;
 }
 
 .slab-section {
     margin-bottom: 20px;
     padding: 15px;
     border-radius: 8px;
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #2b3a4a;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    border: 1px solid #3a4a5a;
 }
 
 .slab-section.current-slab {
-    border: 2px solid #4CAF50;
-    background-color: #f0fff0;
+    border: 2px solid #ffdf00;
+    background-color: #2b3a4a;
 }
 
 .slab-section h4 {
-    color: #444;
+    color: #ffdf00;
     margin-bottom: 10px;
     font-size: 1.2rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #3a4a5a;
     padding-bottom: 5px;
 }
 
@@ -370,17 +399,34 @@ button:disabled {
 
 .player-name {
     padding: 8px 12px;
-    background-color: #f8f8f8;
+    background-color: #3a4a5a;
     border-radius: 4px;
     font-size: 0.9rem;
     transition: all 0.3s ease;
+    color: #ffffff;
+    border: 1px solid #4a5a6a;
 }
 
 .player-name.current-player {
-    background-color: #4CAF50;
-    color: white;
+    background-color: #2b3a4a;
+    color: #ffdf00;
     font-weight: bold;
     transform: scale(1.02);
+    border: 2px solid #ffdf00;
+}
+
+.player-name.sold {
+    background-color: #2b3a4a;
+    color: rgba(255, 255, 255, 0.4);
+    text-decoration: line-through;
+    border: 1px solid #3a4a5a;
+}
+
+.buyer-info {
+    color: #ffdf00;
+    font-size: 0.9em;
+    margin-left: 4px;
+    font-weight: bold;
 }
 
 /* Adjust main content to accommodate the panel */
@@ -389,4 +435,16 @@ button:disabled {
     display: flex;
     gap: 20px;
     padding: 20px;
+    background-color: #1a2a3a;
+}
+
+.pre-auction-tag {
+  background-color: #ffdf00;
+  color: #1a2a3a;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-right: 8px;
 }

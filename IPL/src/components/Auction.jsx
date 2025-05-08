@@ -111,6 +111,7 @@ const Auction = ({ players }) => {
     const [upcomingSlab, setUpcomingSlab] = useState(null);
     const [currentPlayer, setCurrentPlayer] = useState(DEFAULT_PLAYER);
     const [auctionSequence, setAuctionSequence] = useState([]);
+    const [isSequenceComplete, setIsSequenceComplete] = useState(false);
 
     const navigate = useNavigate();
 
@@ -130,15 +131,38 @@ const Auction = ({ players }) => {
             const ownerUnitsRaw = localStorage.getItem("OwnerUnits");
             const ownerUnits = ownerUnitsRaw ? JSON.parse(ownerUnitsRaw) : {};
 
-            // Initialize owners with their units, but only up to totalOwners
+            // Load pre-auction data
+            const preAuctionDataRaw = localStorage.getItem("PreAuctionData");
+            const preAuctionData = preAuctionDataRaw ? JSON.parse(preAuctionDataRaw) : {};
+
+            // Initialize owners with their units and pre-auction purchases
             const initialOwners = Object.entries(ownerUnits)
                 .filter(([id]) => parseInt(id) <= totalOwners) // Only include owners up to totalOwners
-                .map(([id, units]) => ({
-                    id: parseInt(id),
-                    unitsLeft: units,
-                    purchasedPlayers: [],
-                    slabPlayers: {},
-                }));
+                .map(([id, units]) => {
+                    // Find all players purchased by this owner in pre-auction
+                    const purchasedPlayers = Object.entries(preAuctionData)
+                        .filter(([_, data]) => data.owner === parseInt(id))
+                        .map(([_, data]) => data.player.PName);
+
+                    // Group purchased players by slab
+                    const slabPlayers = {};
+                    Object.entries(preAuctionData)
+                        .filter(([_, data]) => data.owner === parseInt(id))
+                        .forEach(([_, data]) => {
+                            const slab = data.player.PSlab;
+                            if (!slabPlayers[slab]) {
+                                slabPlayers[slab] = [];
+                            }
+                            slabPlayers[slab].push(data.player.PName);
+                        });
+
+                    return {
+                        id: parseInt(id),
+                        unitsLeft: units,
+                        purchasedPlayers,
+                        slabPlayers,
+                    };
+                });
             setOwners(initialOwners);
 
             // Load slabs configuration
@@ -151,9 +175,15 @@ const Auction = ({ players }) => {
             const sequence = auctionSequenceRaw ? JSON.parse(auctionSequenceRaw) : [];
             setAuctionSequence(sequence);
 
-            // Load player data
+            // Load player data and remove pre-auction purchased players
             const playerDataRaw = localStorage.getItem("PlayerData");
             const playerData = playerDataRaw ? JSON.parse(playerDataRaw) : {};
+            
+            // Remove players that were purchased in pre-auction
+            Object.entries(playerData).forEach(([slab, players]) => {
+                playerData[slab] = players.filter(player => !preAuctionData[player.PID]);
+            });
+            
             setPlayerDataState(playerData);
 
             console.log('Loaded configuration:', {
@@ -162,7 +192,8 @@ const Auction = ({ players }) => {
                 ownerUnits,
                 slabs,
                 sequence,
-                playerData
+                playerData,
+                preAuctionData
             });
         };
 
@@ -200,7 +231,7 @@ const Auction = ({ players }) => {
                 const newSlabDetails = {
                     name: slabConfig.name,
                     basePrice: slabConfig.basePrice,
-                    maxBid: slabConfig.maxBid || slabConfig.basePrice * 2, // Default max bid if not set
+                    maxBid: slabConfig.maxBid || slabConfig.basePrice * 2,
                     numPlayers: slabConfig.numPlayers
                 };
                 console.log('Setting slab details:', newSlabDetails);
@@ -214,47 +245,125 @@ const Auction = ({ players }) => {
             console.log('No current player or PSlab, using default slab');
             setSlabDetails(DEFAULT_SLAB);
         }
-    }, [currentSlabIndex, currentPlayer, slabsState]);
+    }, [currentPlayer, slabsState]);
 
-    // Move to next unsold player in current slab or next slab
+    // Modify moveToNextPlayer function to handle unbidded players
     const moveToNextPlayer = () => {
-        console.log('Moving to Next Player:', {
-            currentSlabName,
-            currentSlabPlayers,
-            currentPlayer
-        });
+        // Only log sequence state when it changes significantly
+        if (isSequenceComplete || currentSlabIndex > 0) {
+            console.log('Sequence State:', {
+                isSequenceComplete,
+                currentSlabIndex,
+                currentSlabName,
+                unbiddedPlayersQueue: unbiddedPlayersQueue.length
+            });
+        }
         
         // Reset ownersWithMaxBid when moving to next player
         setOwnersWithMaxBid([]);
+        
+        // If we're in the unbidded players queue phase
+        if (isSequenceComplete) {
+            if (unbiddedPlayersQueue.length > 0) {
+                // Get the next unbidded player
+                const nextUnbiddedPlayer = unbiddedPlayersQueue[0];
+                console.log('Processing unbidded player:', {
+                    playerName: nextUnbiddedPlayer.PName,
+                    playerId: nextUnbiddedPlayer.PID,
+                    originalSlab: nextUnbiddedPlayer.PSlab,
+                    currentState: playerDataState[nextUnbiddedPlayer.PSlab]?.find(p => p.PID === nextUnbiddedPlayer.PID)
+                });
+                
+                // Update current player and slab index
+                setCurrentPlayer(nextUnbiddedPlayer);
+                const originalSlabIndex = auctionSequence.findIndex(slab => slab === nextUnbiddedPlayer.PSlab);
+                if (originalSlabIndex !== -1) {
+                    setCurrentSlabIndex(originalSlabIndex);
+                }
+                
+                // Remove the player from the queue
+                setUnbiddedPlayersQueue(prev => prev.slice(1));
+                
+                // Set the slab details for the unbidded player
+                const slabConfig = slabsState.find(slab => slab.name === nextUnbiddedPlayer.PSlab);
+                if (slabConfig) {
+                    const newSlabDetails = {
+                        name: slabConfig.name,
+                        basePrice: slabConfig.basePrice,
+                        maxBid: slabConfig.maxBid || slabConfig.basePrice * 2,
+                        numPlayers: slabConfig.numPlayers
+                    };
+                    console.log('Setting slab details for unbidded player:', newSlabDetails);
+                    setSlabDetails(newSlabDetails);
+                    setHighestBid(slabConfig.basePrice);
+                }
+
+                // Update player data state to ensure the player is available for bidding
+                setPlayerDataState(prevData => {
+                    const updatedData = { ...prevData };
+                    if (updatedData[nextUnbiddedPlayer.PSlab]) {
+                        console.log('Before restoring player:', {
+                            slabName: nextUnbiddedPlayer.PSlab,
+                            playerState: updatedData[nextUnbiddedPlayer.PSlab].find(p => p.PID === nextUnbiddedPlayer.PID),
+                            playerId: nextUnbiddedPlayer.PID
+                        });
+
+                        // Find if the player exists in the slab
+                        const playerIndex = updatedData[nextUnbiddedPlayer.PSlab].findIndex(p => p.PID === nextUnbiddedPlayer.PID);
+                        if (playerIndex === -1) {
+                            // If player not found, add them back
+                            updatedData[nextUnbiddedPlayer.PSlab] = [...updatedData[nextUnbiddedPlayer.PSlab], nextUnbiddedPlayer];
+                        } else if (updatedData[nextUnbiddedPlayer.PSlab][playerIndex] === 0) {
+                            // If player is marked as sold (0), restore them by creating a new array
+                            updatedData[nextUnbiddedPlayer.PSlab] = [
+                                ...updatedData[nextUnbiddedPlayer.PSlab].slice(0, playerIndex),
+                                nextUnbiddedPlayer,
+                                ...updatedData[nextUnbiddedPlayer.PSlab].slice(playerIndex + 1)
+                            ];
+                        }
+
+                        console.log('After restoring player:', {
+                            slabName: nextUnbiddedPlayer.PSlab,
+                            playerState: updatedData[nextUnbiddedPlayer.PSlab].find(p => p.PID === nextUnbiddedPlayer.PID),
+                            playerId: nextUnbiddedPlayer.PID
+                        });
+                    }
+                    return updatedData;
+                });
+
+                // Remove player from unbiddedPlayersQueue to prevent repeated restoration
+                setUnbiddedPlayersQueue(prevQueue => prevQueue.filter(p => p.PID !== nextUnbiddedPlayer.PID));
+            } else {
+                // No more unbidded players, end auction
+                endAuction(
+                    prepareAuctionData,
+                    owners,
+                    slabsState,
+                    saveAuctionData,
+                    navigate
+                );
+            }
+            return;
+        }
         
         // Check if current slab has any unsold players
         const hasUnsoldPlayers = currentSlabPlayers.some(player => player !== 0);
         
         if (!hasUnsoldPlayers) {
-            console.log('No unsold players in current slab, moving to next slab');
             // Current slab is completely sold, move to next slab
             const nextSlabIndex = currentSlabIndex + 1;
             if (nextSlabIndex < auctionSequence.length) {
                 // Show upcoming slab information
                 const nextSlabName = auctionSequence[nextSlabIndex];
-                console.log('Next Slab:', {
-                    nextSlabIndex,
-                    nextSlabName,
-                    nextSlabPlayers: playerDataState[nextSlabName]
-                });
-                
                 setUpcomingSlab(nextSlabName);
                 
                 // Wait for 2 seconds to show the message
                 setTimeout(() => {
-                    console.log('Transitioning to next slab');
                     setCurrentSlabIndex(nextSlabIndex);
                     setUpcomingSlab(null);
                     
                     // Update slab details for the new slab
                     const nextSlabConfig = slabsState.find(slab => slab.name === nextSlabName);
-                    console.log('Next Slab Config:', nextSlabConfig);
-                    
                     if (nextSlabConfig) {
                         setSlabDetails({
                             name: nextSlabConfig.name,
@@ -266,70 +375,84 @@ const Auction = ({ players }) => {
                         // Get the first unsold player from the new slab
                         const nextSlabPlayers = playerDataState[nextSlabName] || [];
                         const firstUnsoldPlayer = nextSlabPlayers.find(player => player !== 0);
-                        console.log('First Unsold Player in Next Slab:', firstUnsoldPlayer);
                         
                         if (firstUnsoldPlayer) {
                             setCurrentPlayer(firstUnsoldPlayer);
                         } else {
-                            // If no unsold players in next slab, end auction
-                            console.log('No unsold players in next slab, ending auction');
-                            console.log('Current state before ending auction:', {
-                                owners,
-                                slabsState,
-                                currentSlabIndex: nextSlabIndex,
-                                currentSlabName: nextSlabName
-                            });
-                            endAuction(
-                                prepareAuctionData,
-                                owners,
-                                slabsState,
-                                saveAuctionData,
-                                navigate
-                            );
+                            // If no unsold players in next slab, move to next slab
+                            const nextNextSlabIndex = nextSlabIndex + 1;
+                            if (nextNextSlabIndex < auctionSequence.length) {
+                                setCurrentSlabIndex(nextNextSlabIndex);
+                                const nextNextSlabName = auctionSequence[nextNextSlabIndex];
+                                const nextNextSlabPlayers = playerDataState[nextNextSlabName] || [];
+                                const nextFirstUnsoldPlayer = nextNextSlabPlayers.find(player => player !== 0);
+                                if (nextFirstUnsoldPlayer) {
+                                    setCurrentPlayer(nextFirstUnsoldPlayer);
+                                } else {
+                                    // If no more slabs with unsold players, check for unbidded players
+                                    if (unbiddedPlayersQueue.length > 0) {
+                                        console.log('Starting unbidded players queue:', unbiddedPlayersQueue.length, 'players remaining');
+                                        setIsSequenceComplete(true);
+                                        const firstUnbiddedPlayer = unbiddedPlayersQueue[0];
+                                        setCurrentPlayer(firstUnbiddedPlayer);
+                                        setUnbiddedPlayersQueue(prev => prev.slice(1));
+                                    } else {
+                                        console.log('Auction Complete - No more players');
+                                        endAuction(
+                                            prepareAuctionData,
+                                            owners,
+                                            slabsState,
+                                            saveAuctionData,
+                                            navigate
+                                        );
+                                    }
+                                }
+                            } else {
+                                // End of sequence, check for unbidded players
+                                if (unbiddedPlayersQueue.length > 0) {
+                                    console.log('Starting unbidded players queue:', unbiddedPlayersQueue.length, 'players remaining');
+                                    setIsSequenceComplete(true);
+                                    const firstUnbiddedPlayer = unbiddedPlayersQueue[0];
+                                    setCurrentPlayer(firstUnbiddedPlayer);
+                                    setUnbiddedPlayersQueue(prev => prev.slice(1));
+                                } else {
+                                    console.log('Auction Complete - No more players');
+                                    endAuction(
+                                        prepareAuctionData,
+                                        owners,
+                                        slabsState,
+                                        saveAuctionData,
+                                        navigate
+                                    );
+                                }
+                            }
                         }
-                    } else {
-                        console.error('No slab configuration found for:', nextSlabName);
-                        // If no slab config found, end auction
-                        console.log('No slab config found, ending auction');
-                        console.log('Current state before ending auction:', {
-                            owners,
-                            slabsState,
-                            currentSlabIndex: nextSlabIndex,
-                            currentSlabName: nextSlabName
-                        });
-                        endAuction(
-                            prepareAuctionData,
-                            owners,
-                            slabsState,
-                            saveAuctionData,
-                            navigate
-                        );
                     }
                 }, 2000);
             } else {
-                console.log('No more slabs, ending auction');
-                console.log('Current state before ending auction:', {
-                    owners,
-                    slabsState,
-                    currentSlabIndex,
-                    currentSlabName
-                });
-                // End of auction
-                endAuction(
-                    prepareAuctionData,
-                    owners,
-                    slabsState,
-                    saveAuctionData,
-                    navigate
-                );
+                // End of sequence, check for unbidded players
+                if (unbiddedPlayersQueue.length > 0) {
+                    console.log('Starting unbidded players queue:', unbiddedPlayersQueue.length, 'players remaining');
+                    setIsSequenceComplete(true);
+                    const firstUnbiddedPlayer = unbiddedPlayersQueue[0];
+                    setCurrentPlayer(firstUnbiddedPlayer);
+                    setUnbiddedPlayersQueue(prev => prev.slice(1));
+                } else {
+                    console.log('Auction Complete - No more players');
+                    endAuction(
+                        prepareAuctionData,
+                        owners,
+                        slabsState,
+                        saveAuctionData,
+                        navigate
+                    );
+                }
             }
         } else {
-            console.log('Staying in current slab, has unsold players');
             // Find next unsold player in current slab
             const currentPlayerIndex = currentSlabPlayers.findIndex(player => 
                 player !== 0 && player.PID === currentPlayer.PID
             );
-            console.log('Current Player Index:', currentPlayerIndex);
             
             // Find the next unsold player after the current one
             let nextUnsoldPlayer = null;
@@ -340,10 +463,7 @@ const Auction = ({ players }) => {
                 }
             }
             
-            console.log('Next Unsold Player:', nextUnsoldPlayer);
-            
             if (nextUnsoldPlayer) {
-                console.log('Found next unsold player:', nextUnsoldPlayer);
                 setCurrentPlayer(nextUnsoldPlayer);
             } else {
                 // If no more players in current slab, move to next slab
@@ -356,14 +476,34 @@ const Auction = ({ players }) => {
                     if (firstUnsoldPlayer) {
                         setCurrentPlayer(firstUnsoldPlayer);
                     } else {
-                        // If no unsold players in next slab, end auction
-                        console.log('No unsold players in next slab, ending auction');
-                        console.log('Current state before ending auction:', {
-                            owners,
-                            slabsState,
-                            currentSlabIndex: nextSlabIndex,
-                            currentSlabName: nextSlabName
-                        });
+                        // If no unsold players in next slab, check for unbidded players
+                        if (unbiddedPlayersQueue.length > 0) {
+                            console.log('Starting unbidded players queue:', unbiddedPlayersQueue.length, 'players remaining');
+                            setIsSequenceComplete(true);
+                            const firstUnbiddedPlayer = unbiddedPlayersQueue[0];
+                            setCurrentPlayer(firstUnbiddedPlayer);
+                            setUnbiddedPlayersQueue(prev => prev.slice(1));
+                        } else {
+                            console.log('Auction Complete - No more players');
+                            endAuction(
+                                prepareAuctionData,
+                                owners,
+                                slabsState,
+                                saveAuctionData,
+                                navigate
+                            );
+                        }
+                    }
+                } else {
+                    // End of sequence, check for unbidded players
+                    if (unbiddedPlayersQueue.length > 0) {
+                        console.log('Starting unbidded players queue:', unbiddedPlayersQueue.length, 'players remaining');
+                        setIsSequenceComplete(true);
+                        const firstUnbiddedPlayer = unbiddedPlayersQueue[0];
+                        setCurrentPlayer(firstUnbiddedPlayer);
+                        setUnbiddedPlayersQueue(prev => prev.slice(1));
+                    } else {
+                        console.log('Auction Complete - No more players');
                         endAuction(
                             prepareAuctionData,
                             owners,
@@ -372,21 +512,6 @@ const Auction = ({ players }) => {
                             navigate
                         );
                     }
-                } else {
-                    console.log('No more slabs, ending auction');
-                    console.log('Current state before ending auction:', {
-                        owners,
-                        slabsState,
-                        currentSlabIndex,
-                        currentSlabName
-                    });
-                    endAuction(
-                        prepareAuctionData,
-                        owners,
-                        slabsState,
-                        saveAuctionData,
-                        navigate
-                    );
                 }
             }
         }
@@ -405,13 +530,15 @@ const Auction = ({ players }) => {
         });
     };
 
-    // Handle bid assignment
+    // Modify handlePlayerAssignment to handle timer expiration
     const handlePlayerAssignment = async () => {
         if (highestBidder) {
             console.log('Assigning player to highest bidder:', {
                 highestBidder,
                 currentPlayer,
-                highestBid
+                highestBid,
+                currentSlabName,
+                playerDataState: playerDataState[currentSlabName]?.find(p => p.PID === currentPlayer.PID)
             });
 
             const poolSize = Object.values(playerDataState).flat().length;
@@ -420,8 +547,6 @@ const Auction = ({ players }) => {
             // Update owner state first
             const updatedOwners = owners.map(owner => {
                 if (owner.id === highestBidder.id) {
-                    console.log('Updating owner:', owner.id, 'with player:', currentPlayer.PName);
-                    
                     // Create new arrays to avoid reference issues
                     const updatedSlabPlayers = { ...owner.slabPlayers };
                     if (!updatedSlabPlayers[currentSlabName]) {
@@ -451,13 +576,6 @@ const Auction = ({ players }) => {
                         currentBid: highestBid
                     };
 
-                    console.log('Updated owner state:', {
-                        id: updatedOwner.id,
-                        purchasedPlayers: updatedOwner.purchasedPlayers,
-                        slabPlayers: updatedOwner.slabPlayers,
-                        unitsLeft: updatedOwner.unitsLeft
-                    });
-
                     // Save the updated owner state to localStorage
                     const ownerState = {
                         id: updatedOwner.id,
@@ -472,16 +590,28 @@ const Auction = ({ players }) => {
                 return owner;
             });
 
-            console.log('Setting updated owners:', updatedOwners);
             setOwners(updatedOwners);
 
-            // Update player data
+            // Update player data state to mark player as sold
             setPlayerDataState(prevData => {
                 const updatedData = { ...prevData };
                 if (updatedData[currentSlabName]) {
+                    console.log('Updating player data state:', {
+                        slabName: currentSlabName,
+                        beforeUpdate: updatedData[currentSlabName].find(p => p.PID === currentPlayer.PID),
+                        playerId: currentPlayer.PID
+                    });
+                    
+                    // Mark player as sold (0)
                     updatedData[currentSlabName] = updatedData[currentSlabName].map(p => 
                         p.PID === currentPlayer.PID ? 0 : p
                     );
+                    
+                    console.log('After update:', {
+                        slabName: currentSlabName,
+                        afterUpdate: updatedData[currentSlabName].find(p => p.PID === currentPlayer.PID),
+                        playerId: currentPlayer.PID
+                    });
                 }
                 return updatedData;
             });
@@ -506,7 +636,30 @@ const Auction = ({ players }) => {
             // Move to next player
             moveToNextPlayer();
         } else {
-            console.log('No highest bidder found for player:', currentPlayer);
+            // Timer expired with no bid
+            console.log('Player skipped - adding to queue:', {
+                playerName: currentPlayer.PName,
+                playerId: currentPlayer.PID,
+                currentSlab: currentSlabName,
+                playerDataState: playerDataState[currentSlabName]?.find(p => p.PID === currentPlayer.PID)
+            });
+            
+            // Add player to unbidded queue if not already present
+            setUnbiddedPlayersQueue(prev => {
+                const isAlreadyInQueue = prev.some(p => p.PID === currentPlayer.PID);
+                if (!isAlreadyInQueue) {
+                    return [...prev, currentPlayer];
+                }
+                return prev;
+            });
+            
+            // Reset auction state
+            setHighestBid(slabDetails.basePrice);
+            setHighestBidder(null);
+            setTimer(180);
+            
+            // Move to next player
+            moveToNextPlayer();
         }
     };
 
@@ -544,6 +697,7 @@ const Auction = ({ players }) => {
         }
     }, [timer, isStarted, isStopped]);
 
+    // Modify handleBidClick to reduce logging
     const handleBidClick = (ownerId, bidValue) => {
         if (isStopped) return;
 
@@ -571,20 +725,11 @@ const Auction = ({ players }) => {
         const cur_maxBid = slabDetails.maxBid;
 
         if (owner.unitsLeft >= bidValue && bidValue >= highestBid) {
-            console.log('Setting highest bidder:', {
-                ownerId,
-                bidValue,
-                currentHighestBid: highestBid,
-                currentHighestBidder: highestBidder
-            });
-
             if (bidValue === cur_maxBid) {
-                // If this is a max bid, add the owner to the list of max bidders
                 setOwnersWithMaxBid(prev => {
                     const ownerAlreadyMaxBid = prev.some(o => o.id === owner.id);
                     if (!ownerAlreadyMaxBid) {
                         const updatedOwners = [...prev, owner];
-                        // Randomly select from all owners who bid max
                         const randomOwner = updatedOwners[Math.floor(Math.random() * updatedOwners.length)];
                         setHighestBid(bidValue);
                         setHighestBidder(randomOwner);
@@ -593,17 +738,14 @@ const Auction = ({ players }) => {
                     return prev;
                 });
             } else if (bidValue > highestBid) {
-                // If this is a new highest bid (but not max), clear max bidders and set new highest bidder
                 setHighestBid(bidValue);
                 setHighestBidder(owner);
                 setOwnersWithMaxBid([]);
             } else if (bidValue === highestBid) {
-                // If this is the same as current highest bid, add to potential winners
                 setOwnersWithMaxBid(prev => {
                     const ownerAlreadyMaxBid = prev.some(o => o.id === owner.id);
                     if (!ownerAlreadyMaxBid) {
                         const updatedOwners = [...prev, owner];
-                        // Randomly select from all owners who bid this amount
                         const randomOwner = updatedOwners[Math.floor(Math.random() * updatedOwners.length)];
                         setHighestBidder(randomOwner);
                         return updatedOwners;
@@ -614,14 +756,6 @@ const Auction = ({ players }) => {
 
             setTimer(180);
             updateOwnerBid(ownerId, bidValue, owners, setOwners);
-        } else {
-            console.log('Bid not accepted:', {
-                ownerId,
-                bidValue,
-                ownerUnitsLeft: owner.unitsLeft,
-                currentHighestBid: highestBid,
-                isCurrentHighestBidder: owner === highestBidder
-            });
         }
     };
 
@@ -639,7 +773,8 @@ const Auction = ({ players }) => {
                         (index) => getPlayerImage(currentPlayer, img10, PLAYER_IMAGES, index),
                         currentSlabIndex,
                         slabDetails,
-                        numberOfPlayersLeft
+                        numberOfPlayersLeft,
+                        JSON.parse(localStorage.getItem("PreAuctionData") || "{}")
                     )}
                     <div style={{ flexGrow: 1, marginLeft: "20px" }}>
                         {renderBidInfo(

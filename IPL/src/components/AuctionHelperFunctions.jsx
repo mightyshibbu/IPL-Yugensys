@@ -215,7 +215,8 @@ export const renderPlayerCard = (
   getPlayerImage,
   currentPlayerIndex,
   slabDetails,
-  numberOfPlayersLeft
+  numberOfPlayersLeft,
+  preAuctionData
 ) => (
   <div className="player-card">
     <div className="important-text">Player Card</div>
@@ -230,7 +231,9 @@ export const renderPlayerCard = (
       <div>MAX: {slabDetails.maxBid !== null && slabDetails.maxBid !== undefined ? slabDetails.maxBid : "No max bid"}</div>
     </div>
     <div className="important-text">Player ID: {currentPlayer.PID}</div>
-    <div className="player-name">Name: {currentPlayer.PName}</div>
+    <div className="player-name">
+      Name: {currentPlayer.PName}
+    </div>
     <div>Age: {currentPlayer.PAge}</div>
     <div>Height: {currentPlayer.PHeight}</div>
     <div>Weight: {currentPlayer.PWeight}</div>
@@ -265,8 +268,11 @@ export const renderOwnerCards = (
   highestBidder,
   isStopped,
   renderBidOptions
-) =>
-  owners.map((owner) => (
+) => {
+  // Get pre-auction data
+  const preAuctionData = JSON.parse(localStorage.getItem("PreAuctionData") || "{}");
+
+  return owners.map((owner) => (
     <div key={owner.id} className="owner-card">
       {owner.id == 1 ? (
         <div>Owner {owner.id}</div>
@@ -275,8 +281,38 @@ export const renderOwnerCards = (
       )}
       <div>Units Left: {owner.unitsLeft}</div>
       {renderBidOptions(owner)}
-      <div>
-        Purchased Players: {owner.purchasedPlayers.length > 0 ? owner.purchasedPlayers.join(", ") : "None"}
+      <div className="purchased-players">
+        Purchased Players:{" "}
+        {owner.purchasedPlayers.length > 0 ? (
+          <div className="players-list">
+            {owner.purchasedPlayers.map((player, index) => {
+              // Find which owner bought this player
+              const buyer = owners.find(o => 
+                o.purchasedPlayers.includes(player)
+              );
+              const isSold = buyer && buyer.id !== owner.id;
+              
+              // Check if player was purchased in pre-auction
+              const isPreAuctioned = Object.values(preAuctionData).some(
+                data => data.player.PName === player && data.owner === owner.id
+              );
+              
+              return (
+                <span 
+                  key={index} 
+                  className={`player-name ${isSold ? 'sold' : ''}`}
+                >
+                  {isPreAuctioned && <span className="pre-auction-tag">PRE</span>}
+                  {player}
+                  {isSold && <span className="buyer-info"> (Owner {buyer.id})</span>}
+                  {index < owner.purchasedPlayers.length - 1 ? ", " : ""}
+                </span>
+              );
+            })}
+          </div>
+        ) : (
+          "None"
+        )}
       </div>
       <button
         disabled={(highestBidder && highestBidder.id === owner.id) || isStopped}
@@ -286,6 +322,7 @@ export const renderOwnerCards = (
       </button>
     </div>
   ));
+};
 
 export const renderBidOptions = (
   owner,
