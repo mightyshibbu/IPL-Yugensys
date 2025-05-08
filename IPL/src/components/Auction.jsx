@@ -308,19 +308,19 @@ const Auction = ({ players }) => {
                             playerId: nextUnbiddedPlayer.PID
                         });
 
-                        // Find if the player exists in the slab
-                        const playerIndex = updatedData[nextUnbiddedPlayer.PSlab].findIndex(p => p.PID === nextUnbiddedPlayer.PID);
+                        // Create a new array to avoid reference issues
+                        const updatedSlabPlayers = [...updatedData[nextUnbiddedPlayer.PSlab]];
+                        const playerIndex = updatedSlabPlayers.findIndex(p => p.PID === nextUnbiddedPlayer.PID);
+                        
                         if (playerIndex === -1) {
                             // If player not found, add them back
-                            updatedData[nextUnbiddedPlayer.PSlab] = [...updatedData[nextUnbiddedPlayer.PSlab], nextUnbiddedPlayer];
-                        } else if (updatedData[nextUnbiddedPlayer.PSlab][playerIndex] === 0) {
-                            // If player is marked as sold (0), restore them by creating a new array
-                            updatedData[nextUnbiddedPlayer.PSlab] = [
-                                ...updatedData[nextUnbiddedPlayer.PSlab].slice(0, playerIndex),
-                                nextUnbiddedPlayer,
-                                ...updatedData[nextUnbiddedPlayer.PSlab].slice(playerIndex + 1)
-                            ];
+                            updatedSlabPlayers.push(nextUnbiddedPlayer);
+                        } else if (updatedSlabPlayers[playerIndex] === 0) {
+                            // If player is marked as sold (0), restore them
+                            updatedSlabPlayers[playerIndex] = nextUnbiddedPlayer;
                         }
+                        
+                        updatedData[nextUnbiddedPlayer.PSlab] = updatedSlabPlayers;
 
                         console.log('After restoring player:', {
                             slabName: nextUnbiddedPlayer.PSlab,
@@ -602,10 +602,15 @@ const Auction = ({ players }) => {
                         playerId: currentPlayer.PID
                     });
                     
-                    // Mark player as sold (0)
-                    updatedData[currentSlabName] = updatedData[currentSlabName].map(p => 
-                        p.PID === currentPlayer.PID ? 0 : p
-                    );
+                    // Create a new array to avoid reference issues
+                    const updatedSlabPlayers = [...updatedData[currentSlabName]];
+                    const playerIndex = updatedSlabPlayers.findIndex(p => p.PID === currentPlayer.PID);
+                    
+                    if (playerIndex !== -1) {
+                        // Mark player as sold (0)
+                        updatedSlabPlayers[playerIndex] = 0;
+                        updatedData[currentSlabName] = updatedSlabPlayers;
+                    }
                     
                     console.log('After update:', {
                         slabName: currentSlabName,
