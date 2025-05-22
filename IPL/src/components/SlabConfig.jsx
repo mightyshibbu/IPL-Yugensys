@@ -4,8 +4,6 @@ import { useNavigate } from "react-router-dom";
 
 const SlabConfig = ({
   players,
-  poolSize,
-  setPoolSize,
   configTime,
   setConfigTime,
   numSlabs,
@@ -23,18 +21,12 @@ const SlabConfig = ({
   const [reservedAmount, setReservedAmount] = useState(null); // State to store the reserved amount
   const [isOkEnabled, setIsOkEnabled] = useState(false); // State to enable the OK button
 
-  // Function to adjust pool size by multiple of total owners
-  const adjustPoolSize = (increment) => {
-    const currentPoolSize = poolSize;
-    const adjustment = increment ? totalOwners : -totalOwners;
-    const newPoolSize = currentPoolSize + adjustment;
-    
-    if (newPoolSize >= totalOwners && newPoolSize <= players.length) {
-      setPoolSize(newPoolSize);
-      setError(null);
-    } else {
-      setError(`Pool size must be between ${totalOwners} and ${players.length}`);
-    }
+  // Calculate total pool size based on slab configurations
+  const calculateTotalPoolSize = () => {
+    const total = slabsConfig.reduce((total, slab) => total + (Number(slab.numPlayers) || 0), 0);
+    // Save pool size to localStorage whenever it's calculated
+    localStorage.setItem("poolSize", total.toString());
+    return total;
   };
 
   // Function to adjust number of players in a slab by multiple of total owners
@@ -44,16 +36,16 @@ const SlabConfig = ({
     const adjustment = increment ? totalOwners : -totalOwners;
     const newPlayers = currentPlayers + adjustment;
     
-    // Check if new total would exceed pool size
+    // Check if new total would exceed maximum allowed players
     const totalPlayersInOtherSlabs = updatedSlabs.reduce((total, slab, i) => 
       i !== index ? total + (Number(slab.numPlayers) || 0) : total, 0);
     
-    if (newPlayers >= 0 && (totalPlayersInOtherSlabs + newPlayers) <= poolSize) {
+    if (newPlayers >= 0 && (totalPlayersInOtherSlabs + newPlayers) <= 36) {
       updatedSlabs[index].numPlayers = newPlayers;
       setSlabsConfig(updatedSlabs);
       setError(null);
     } else {
-      setError("Number of players cannot be negative and total players cannot exceed pool size");
+      setError("Number of players cannot be negative and total players cannot exceed 36");
     }
   };
 
@@ -70,6 +62,8 @@ const SlabConfig = ({
   // Save slabsConfig to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("slabsConfig", JSON.stringify(slabsConfig));
+    // Recalculate and save pool size whenever slabsConfig changes
+    calculateTotalPoolSize();
   }, [slabsConfig]);
 
   // Handle checkbox change for max bid cap
@@ -113,6 +107,16 @@ const SlabConfig = ({
         setError(`Number of players must be a multiple of ${totalOwners} (total owners)`);
         return;
       }
+      
+      // Check if new total would exceed maximum allowed players
+      const totalPlayersInOtherSlabs = updatedSlabs.reduce((total, slab, i) => 
+        i !== index ? total + (Number(slab.numPlayers) || 0) : total, 0);
+      
+      if (totalPlayersInOtherSlabs + numValue > 36) {
+        setError("Total players cannot exceed 36");
+        return;
+      }
+      
       updatedSlabs[index][field] = numValue;
     } else {
       updatedSlabs[index][field] = value;
@@ -123,27 +127,45 @@ const SlabConfig = ({
 
   // Handle when OK is clicked
   const handleOk = () => {
-    console.log("Inside HandleOK poolsize", poolSize);
+    const totalPoolSize = calculateTotalPoolSize();
     
-    // Check if pool size is a multiple of total owners
-    if (poolSize % totalOwners !== 0) {
-      setError(`Pool size must be a multiple of ${totalOwners} (total owners)`);
+    // Validate total pool size
+    if (totalPoolSize === 0) {
+      setError("At least one slab must have players assigned");
       return;
     }
     
-    if (poolSize >= 1 && poolSize <= players.length) {
-      setSlabs(slabsConfig); // Pass the configured slabs to the parent
-      navigate("/playerConfig", { replace: true });
-    } else {
-      setError("Please enter a valid pool size between 1 and " + players.length);
+    if (totalPoolSize > 36) {
+      setError("Total number of players cannot exceed 36");
+      return;
     }
+    
+    if (totalPoolSize % totalOwners !== 0) {
+      setError(`Total number of players must be a multiple of ${totalOwners} (total owners)`);
+      return;
+    }
+    
+    setSlabs(slabsConfig); // Pass the configured slabs to the parent
+    navigate("/playerConfig", { replace: true });
   };
 
   // Calculate the reserved amount
   const calculateReservedAmount = () => {
-    // Check if pool size is a multiple of total owners
-    if (poolSize % totalOwners !== 0) {
-      setError(`Pool size must be a multiple of ${totalOwners} (total owners)`);
+    const totalPoolSize = calculateTotalPoolSize();
+    
+    // Validate total pool size
+    if (totalPoolSize === 0) {
+      setError("At least one slab must have players assigned");
+      return;
+    }
+    
+    if (totalPoolSize > 36) {
+      setError("Total number of players cannot exceed 36");
+      return;
+    }
+    
+    if (totalPoolSize % totalOwners !== 0) {
+      setError(`Total number of players must be a multiple of ${totalOwners} (total owners)`);
       return;
     }
 
@@ -176,17 +198,10 @@ const SlabConfig = ({
           </button>
         </div>
 
-        <div className="pool-size-container">
-          <label>Pool Size: </label>
-          <div className="selected-pool-size">{poolSize}</div>
-          <div className="adjuster-buttons">
-            <button onClick={() => adjustPoolSize(false)} disabled={poolSize <= totalOwners}>
-              -{totalOwners}
-            </button>
-            <button onClick={() => adjustPoolSize(true)} disabled={poolSize + totalOwners > players.length}>
-              +{totalOwners}
-            </button>
-          </div>
+        <div className="total-players-info">
+          <label>Total Players: </label>
+          <div className="selected-players">{calculateTotalPoolSize()}</div>
+          <div className="players-limit">(Max: 36)</div>
         </div>
 
         <button onClick={handleGenerateSlabs}>Save and Generate Slabs</button>
@@ -236,7 +251,7 @@ const SlabConfig = ({
                 </button>
                 <button 
                   onClick={() => adjustSlabPlayers(index, true)}
-                  disabled={Number(slab.numPlayers) + totalOwners > poolSize}
+                  disabled={calculateTotalPoolSize() + totalOwners > 36}
                 >
                   +{totalOwners}
                 </button>

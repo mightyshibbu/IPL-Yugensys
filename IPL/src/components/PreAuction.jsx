@@ -9,6 +9,7 @@ const PreAuction = ({ totalOwners }) => {
   const [bidValues, setBidValues] = useState({});
   const [ownerUnits, setOwnerUnits] = useState({}); // Track remaining units per owner
   const [auctionData, setAuctionData] = useState({}); // Auction configuration data
+  const [actualTotalOwners, setActualTotalOwners] = useState(3); // Default to 3 if not set
   const navigate = useNavigate();
 
   // Load PlayerData, PreAuctionData, AuctionData, and OwnerUnits from localStorage
@@ -22,17 +23,16 @@ const PreAuction = ({ totalOwners }) => {
     if (savedAuctionData) {
       const auctionConfig = JSON.parse(savedAuctionData);
       setAuctionData(auctionConfig);
+      setActualTotalOwners(auctionConfig.totalOwners || 3); // Set actual total owners from config
 
-      // Distribute the total units among the owners if not already set
-      if (!savedOwnerUnits) {
-        const initialUnits = {};
-        const unitsPerOwner = auctionConfig.units; // Units per owner
-        for (let i = 1; i <= totalOwners; i++) {
-          initialUnits[i] = unitsPerOwner;
-        }
-        setOwnerUnits(initialUnits);
-        localStorage.setItem("OwnerUnits", JSON.stringify(initialUnits)); // Save initial owner units
+      // Always initialize owner units based on auction config
+      const initialUnits = {};
+      const unitsPerOwner = auctionConfig.units; // Units per owner
+      for (let i = 1; i <= auctionConfig.totalOwners; i++) {
+        initialUnits[i] = unitsPerOwner;
       }
+      setOwnerUnits(initialUnits);
+      localStorage.setItem("OwnerUnits", JSON.stringify(initialUnits)); // Save initial owner units
     }
 
     // Load PlayerData and Purchases
@@ -42,25 +42,28 @@ const PreAuction = ({ totalOwners }) => {
     if (savedPurchases) {
       setPurchases(JSON.parse(savedPurchases));
     }
-    if (savedOwnerUnits) {
-      setOwnerUnits(JSON.parse(savedOwnerUnits));
-    }
-  }, [totalOwners]);
+  }, []); // Remove totalOwners dependency since we get it from auctionConfig
 
-  // Save PreAuctionData, AuctionData, and OwnerUnits to localStorage whenever changes occur
+  // Save PreAuctionData and OwnerUnits to localStorage whenever changes occur
   useEffect(() => {
     localStorage.setItem("PreAuctionData", JSON.stringify(purchases));
-    localStorage.setItem("AuctionData", JSON.stringify(auctionData)); // Save auction configuration
-    localStorage.setItem("OwnerUnits", JSON.stringify(ownerUnits)); // Save owner units
-    console.log("ownerUnits:", ownerUnits)
-  }, [purchases, auctionData, ownerUnits]);
+    localStorage.setItem("OwnerUnits", JSON.stringify(ownerUnits));
+    console.log("Updated owner units:", ownerUnits);
+  }, [purchases, ownerUnits]);
+
+  // Function to get max bid for a given slab
+  const getSlabMaxBid = (slab) => {
+    const slabsConfig = JSON.parse(localStorage.getItem("slabsConfig")) || [];
+    const slabConfig = slabsConfig.find((config) => config.name === slab);
+    return slabConfig ? slabConfig.maxBid : 0;
+  };
 
   // Handle purchasing a player
   const handlePurchase = (player, slab, ownerId) => {
     const purchasePrice = bidValues[player.PID] || 0;
-    const slabMinBid = getSlabMinBid(slab);
-    if (purchasePrice < slabMinBid) {
-      alert(`Price should be at least ${slabMinBid} units for players in the ${slab} slab.`);
+    const slabMaxBid = getSlabMaxBid(slab);
+    if (purchasePrice < slabMaxBid) {
+      alert(`Price should be at least ${slabMaxBid} units for players in the ${slab} slab.`);
       return;
     }
 
@@ -105,11 +108,9 @@ const PreAuction = ({ totalOwners }) => {
     navigate("/sequence", { replace: true });
   };
 
-  // Function to get base price (min bid) for a given slab
-  const getSlabMinBid = (slab) => {
-    const slabsConfig = JSON.parse(localStorage.getItem("slabsConfig")) || [];
-    const slabConfig = slabsConfig.find((config) => config.name === slab);
-    return slabConfig ? slabConfig.basePrice : 0;
+  // Update currentOwner when switching owners
+  const handleSwitchOwner = () => {
+    setCurrentOwner((prev) => (prev % actualTotalOwners) + 1);
   };
 
   return (
@@ -119,9 +120,7 @@ const PreAuction = ({ totalOwners }) => {
       <p>Remaining Units: {ownerUnits[currentOwner] || 0}</p>
 
       {/* Button to go to the next owner */}
-      <button
-        onClick={() => setCurrentOwner((prev) => (prev % totalOwners) + 1)}
-      >
+      <button onClick={handleSwitchOwner}>
         Switch Owner
       </button>
 
@@ -136,7 +135,7 @@ const PreAuction = ({ totalOwners }) => {
                 <th>Age</th>
                 <th>Height</th>
                 <th>Weight</th>
-                <th>Base Price (Min Bid)</th>
+                <th>Minimum Bid</th>
                 <th>Purchase Price</th>
                 <th>Actions</th>
               </tr>
@@ -149,11 +148,11 @@ const PreAuction = ({ totalOwners }) => {
                   <td>{player.PAge}</td>
                   <td>{player.PHeight}</td>
                   <td>{player.PWeight}</td>
-                  <td>{getSlabMinBid(slab)}</td>
+                  <td>{getSlabMaxBid(slab)}</td>
                   <td>
                     <input
                       type="number"
-                      min={getSlabMinBid(slab)}
+                      min={getSlabMaxBid(slab)}
                       value={bidValues[player.PID] || ""}
                       onChange={(e) =>
                         setBidValues((prev) => ({
@@ -161,7 +160,7 @@ const PreAuction = ({ totalOwners }) => {
                           [player.PID]: Number(e.target.value),
                         }))
                       }
-                      placeholder={`Min ${getSlabMinBid(slab)}`}
+                      placeholder={`Min ${getSlabMaxBid(slab)}`}
                     />
                   </td>
                   <td>

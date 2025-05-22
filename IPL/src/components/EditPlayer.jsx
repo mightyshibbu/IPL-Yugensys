@@ -59,7 +59,47 @@ const handleChange = (e) => {
       });
 
       if (response.ok) {
-        navigate('/playerConfig'); // Redirect to the configure page or wherever needed
+        // Get current player data and slab assignments
+        const savedPlayerData = localStorage.getItem("PlayerData");
+        const savedPlayers = localStorage.getItem("players");
+        
+        if (savedPlayerData) {
+          const currentPlayerData = JSON.parse(savedPlayerData);
+          // Create a new object to avoid circular references
+          const updatedPlayerData = {};
+          
+          // Update the player in their current slab
+          Object.keys(currentPlayerData).forEach(slabName => {
+            const slabPlayers = currentPlayerData[slabName];
+            updatedPlayerData[slabName] = slabPlayers.map(p => {
+              if (p.PID === parseInt(id)) {
+                // Create a new player object with updated data
+                return {
+                  ...playerData,
+                  PSlab: slabName
+                };
+              }
+              return p;
+            });
+          });
+          
+          // Save the updated player data
+          localStorage.setItem("PlayerData", JSON.stringify(updatedPlayerData));
+        }
+
+        // Update the players list
+        if (savedPlayers) {
+          const players = JSON.parse(savedPlayers);
+          const updatedPlayers = players.map(p => {
+            if (p.PID === parseInt(id)) {
+              return { ...playerData };
+            }
+            return p;
+          });
+          localStorage.setItem("players", JSON.stringify(updatedPlayers));
+        }
+        
+        navigate('/playerConfig'); // Redirect to the configure page
       } else {
         console.error('Error updating player data');
       }

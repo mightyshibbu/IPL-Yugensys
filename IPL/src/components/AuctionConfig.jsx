@@ -5,8 +5,6 @@ import { useNavigate } from "react-router-dom";
 const AuctionConfig = ({
   units,
   setUnits,
-  poolSize,
-  setPoolSize,
   configTime,
   setConfigTime,
   numSlabs,
@@ -17,20 +15,6 @@ const AuctionConfig = ({
   const navigate = useNavigate();
   const [error, setError] = useState(null);
 
-  // Function to adjust pool size by multiple of total owners
-  const adjustPoolSize = (increment) => {
-    const currentPoolSize = Number(poolSize) || totalOwners;
-    const adjustment = increment ? totalOwners : -totalOwners;
-    const newPoolSize = currentPoolSize + adjustment;
-    
-    if (newPoolSize >= totalOwners && newPoolSize <= 36) {
-      setPoolSize(newPoolSize);
-      setError(null);
-    } else {
-      setError(`Pool size must be between ${totalOwners} and 36`);
-    }
-  };
-
   // Load AuctionData from localStorage when component mounts
   useEffect(() => {
     const savedData = localStorage.getItem("AuctionData");
@@ -38,11 +22,9 @@ const AuctionConfig = ({
       const auctionData = JSON.parse(savedData);
       setConfigTime(auctionData.configTime || "");
       setTotalOwners(auctionData.totalOwners || "");
-      setPoolSize(auctionData.poolSize || "");
-    //   setNumSlabs(auctionData.numSlabs || "");
       setUnits(auctionData.units || "");
     }
-  }, [setConfigTime, setTotalOwners, setPoolSize, setNumSlabs, setUnits]);
+  }, [setConfigTime, setTotalOwners, setUnits]);
 
   // Input change handlers
   const handleTimeChange = (event) => {
@@ -53,20 +35,11 @@ const AuctionConfig = ({
     setUnits(event.target.value);
   };
 
-  const handlePoolSizeChange = (event) => {
-    setPoolSize(event.target.value);
-  };
-
-//   const handleSlabsChange = (event) => {
-//     setNumSlabs(event.target.value);
-//   };
-
   const handleOwnersChange = (event) => {
     const newTotalOwners = Number(event.target.value);
     setTotalOwners(newTotalOwners);
-    // Automatically set pool size to match total owners
-    setPoolSize(newTotalOwners);
   };
+
   const handleBack = () => {
     navigate("/", { replace: true })
   };
@@ -81,12 +54,6 @@ const AuctionConfig = ({
       alert("Number of owners must be between 2 and 6.");
       return;
     }
-    if (poolSize === undefined || poolSize > 36) {
-
-       
-      alert(`Pool size must be between ${totalOwners} and ${poolSize}.`);
-      return;
-    }
     if (units === undefined || units < 1) {
       alert("Units must be at least 1.");
       return;
@@ -96,7 +63,6 @@ const AuctionConfig = ({
     const AuctionData = {
       configTime,   // Bid time
       totalOwners,  // Number of owners
-      poolSize,     // Player pool size
       units         // Total units per owner
     };
   
@@ -106,7 +72,6 @@ const AuctionConfig = ({
     // Navigate to next page
     navigate("/slabConfig", { replace: true });
   };
-  
 
   return (
     <div className="configure-player-list">
@@ -135,42 +100,6 @@ const AuctionConfig = ({
           placeholder="Enter number of owners"
         />
       </div>
-
-      {/* Pool Size Input */}
-      <div className="input-container">
-        <label>Players Pool Size (min {totalOwners}, max 36): </label>
-        <div className="pool-size-controls">
-          <div className="selected-pool-size">{poolSize}</div>
-          <div className="adjuster-buttons">
-            <button 
-              onClick={() => adjustPoolSize(false)} 
-              disabled={Number(poolSize) <= totalOwners}
-              className="adjust-button"
-            >
-              -{totalOwners}
-            </button>
-            <button 
-              onClick={() => adjustPoolSize(true)} 
-              disabled={Number(poolSize) + totalOwners > 36}
-              className="adjust-button"
-            >
-              +{totalOwners}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Slabs Input */}
-      {/* <div className="input-container">
-        <label>Number of Slabs (1-10): </label>
-        <input
-          type="number"
-          value={numSlabs}
-          onChange={handleSlabsChange}
-          className="input-field"
-          placeholder="Enter number of slabs"
-        />
-      </div> */}
 
       {/* Units Input */}
       <div className="input-container">

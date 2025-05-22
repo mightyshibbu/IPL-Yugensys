@@ -8,10 +8,10 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [showInstructions, setShowInstructions] = useState(false);
   const [configData, setConfigData] = useState({
-    poolSize: 12,
     configTime: 180,
     numSlabs: 0,
-    totalOwners: 3
+    totalOwners: 3,
+    poolSize: 0
   });
 
   // Add and remove homepage class on mount/unmount
@@ -32,7 +32,6 @@ const HomePage = () => {
           const auctionConfig = JSON.parse(auctionConfigRaw);
           setConfigData(prev => ({
             ...prev,
-            poolSize: auctionConfig.poolSize || 12,
             configTime: auctionConfig.configTime || 180,
             totalOwners: auctionConfig.totalOwners || 3
           }));
@@ -45,6 +44,15 @@ const HomePage = () => {
           setConfigData(prev => ({
             ...prev,
             numSlabs: slabsConfig.length || 0
+          }));
+        }
+
+        // Load pool size
+        const poolSize = localStorage.getItem("poolSize");
+        if (poolSize) {
+          setConfigData(prev => ({
+            ...prev,
+            poolSize: parseInt(poolSize) || 0
           }));
         }
       } catch (error) {
@@ -97,7 +105,7 @@ const HomePage = () => {
       const ownerUnits = JSON.parse(localStorage.getItem("OwnerUnits"));
 
       // Validate auction data
-      if (!auctionData.configTime || !auctionData.totalOwners || !auctionData.poolSize || !auctionData.units) {
+      if (!auctionData.configTime || !auctionData.totalOwners || !auctionData.units) {
         throw new Error("Invalid auction configuration");
       }
 
@@ -163,10 +171,10 @@ const HomePage = () => {
         <button className="auction-btn" onClick={handleViewPrevious}>View History</button>
       </div>
       <div className="button-container">
-        <label className='auction-btn'>Pool Size: {configData.poolSize}</label>
         <label className='auction-btn'>Timer(sec): {configData.configTime}</label>
         <label className='auction-btn'>Owners: {configData.totalOwners}</label>
         <label className='auction-btn'>Slabs: {configData.numSlabs}</label>
+        <label className='auction-btn'>Pool Size: {configData.poolSize}</label>
       </div>
       <div className="button-container">
         <button className="auction-instruction-btn" onClick={handleShowInstructions}>Instructions</button>
