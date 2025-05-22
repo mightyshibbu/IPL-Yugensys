@@ -215,8 +215,13 @@ export const handleBidClick = (
 
   // Check slab limit first
   const slabPlayers = owner.slabPlayers[slabDetails.name] || [];
-  const maxPlayersPerOwner = Math.ceil(6 / owners.length); // 6 players per slab, divided by number of owners
+  const maxPlayersPerOwner = Math.ceil(slabDetails.numPlayers / owners.length); // Use actual slab details
   if (slabPlayers.length >= maxPlayersPerOwner) {
+    console.log(`Owner ${owner.id} cannot purchase more players from ${slabDetails.name} slab:`, {
+      currentPlayers: slabPlayers.length,
+      maxPlayers: maxPlayersPerOwner,
+      slabName: slabDetails.name
+    });
     alert(`Owner ${owner.id} cannot purchase more players from ${slabDetails.name} slab`);
     return; // Return early without making any state changes
   }
@@ -257,12 +262,23 @@ export const ifFullyFilled = (ownerId, owners, poolSize, slabDetails) => {
     const owner = owners.find((o) => o.id === ownerId);
     if (!owner) return false; // Owner not found, can't bid
 
+    // Get initial player count from localStorage
+    const initialPlayerCountsRaw = localStorage.getItem("initialPlayerCounts");
+    const initialPlayerCounts = initialPlayerCountsRaw ? JSON.parse(initialPlayerCountsRaw) : {};
+    const initialPlayersInSlab = initialPlayerCounts[slabDetails.name] || 0;
+
     const totalOwners = owners.length;
-    const maxPlayersPerOwner = Math.ceil(6 / totalOwners); // 6 players per slab, divided by number of owners
+    const maxPlayersPerOwner = Math.ceil(initialPlayersInSlab / totalOwners); // Use initial player count
     const currentSlabPlayers = owner.slabPlayers[slabDetails.name] || [];
     
     // Check if owner has reached their limit for this slab
     if (currentSlabPlayers.length >= maxPlayersPerOwner) {
+        console.log(`Owner ${ownerId} has reached slab limit:`, {
+            currentPlayers: currentSlabPlayers.length,
+            maxPlayers: maxPlayersPerOwner,
+            initialPlayersInSlab,
+            slabName: slabDetails.name
+        });
         return false; // Owner has reached slab limit, can't bid
     }
 
@@ -271,6 +287,10 @@ export const ifFullyFilled = (ownerId, owners, poolSize, slabDetails) => {
     const maxTotalPlayers = Math.ceil(poolSize / totalOwners);
     
     if (totalPurchasedPlayers >= maxTotalPlayers) {
+        console.log(`Owner ${ownerId} has reached total limit:`, {
+            totalPurchased: totalPurchasedPlayers,
+            maxTotal: maxTotalPlayers
+        });
         return false; // Owner has reached total limit, can't bid
     }
 

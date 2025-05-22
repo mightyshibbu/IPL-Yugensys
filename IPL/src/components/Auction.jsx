@@ -112,6 +112,7 @@ const Auction = ({ players }) => {
     const [currentPlayer, setCurrentPlayer] = useState(DEFAULT_PLAYER);
     const [auctionSequence, setAuctionSequence] = useState([]);
     const [isSequenceComplete, setIsSequenceComplete] = useState(false);
+    const [initialPlayerCounts, setInitialPlayerCounts] = useState({});
 
     const navigate = useNavigate();
 
@@ -215,26 +216,34 @@ const Auction = ({ players }) => {
         return total + slabPlayers.filter(player => player !== 0).length;
     }, 0);
 
-    // Update slab details when current player changes
+    // Add useEffect to update slab details when slabsState changes
     useEffect(() => {
-        console.log('Current Player Changed:', {
-            currentPlayer,
-            currentSlabName,
-            currentSlabIndex
-        });
-
         if (currentPlayer && currentPlayer.PSlab) {
             const slabConfig = slabsState.find(slab => slab.name === currentPlayer.PSlab);
-            console.log('Found Slab Config:', slabConfig);
+            console.log('Updating slab details:', {
+                currentPlayer,
+                slabConfig,
+                slabsState,
+                auctionSequence
+            });
             
             if (slabConfig) {
+                // Get actual number of players in this slab from playerDataState
+                const actualPlayerCount = playerDataState[slabConfig.name]?.filter(p => p !== 0).length || 0;
+                
                 const newSlabDetails = {
                     name: slabConfig.name,
                     basePrice: slabConfig.basePrice,
                     maxBid: slabConfig.maxBid || slabConfig.basePrice * 2,
-                    numPlayers: slabConfig.numPlayers
+                    numPlayers: actualPlayerCount // Use actual player count
                 };
-                console.log('Setting slab details:', newSlabDetails);
+                
+                console.log('Setting updated slab details:', {
+                    newSlabDetails,
+                    actualPlayerCount,
+                    slabPlayers: playerDataState[slabConfig.name]
+                });
+                
                 setSlabDetails(newSlabDetails);
                 setHighestBid(slabConfig.basePrice);
             } else {
@@ -245,7 +254,21 @@ const Auction = ({ players }) => {
             console.log('No current player or PSlab, using default slab');
             setSlabDetails(DEFAULT_SLAB);
         }
-    }, [currentPlayer, slabsState]);
+    }, [currentPlayer, slabsState, playerDataState, auctionSequence]);
+
+    // Update useEffect to store initial player counts
+    useEffect(() => {
+        if (Object.keys(playerDataState).length > 0 && Object.keys(initialPlayerCounts).length === 0) {
+            const counts = {};
+            Object.entries(playerDataState).forEach(([slabName, players]) => {
+                counts[slabName] = players.filter(p => p !== 0).length;
+            });
+            console.log('Setting initial player counts:', counts);
+            setInitialPlayerCounts(counts);
+            // Save to localStorage for other components to use
+            localStorage.setItem("initialPlayerCounts", JSON.stringify(counts));
+        }
+    }, [playerDataState]);
 
     // Modify moveToNextPlayer function to handle unbidded players
     const moveToNextPlayer = () => {
@@ -530,19 +553,70 @@ const Auction = ({ players }) => {
         });
     };
 
-    // Modify handlePlayerAssignment to handle timer expiration
+    // Modify handlePlayerAssignment to use initial player counts and clearer logging
     const handlePlayerAssignment = async () => {
         if (highestBidder) {
-            console.log('Assigning player to highest bidder:', {
-                highestBidder,
-                currentPlayer,
-                highestBid,
-                currentSlabName,
-                playerDataState: playerDataState[currentSlabName]?.find(p => p.PID === currentPlayer.PID)
+            // Use initial player count for fair share calculation
+            const initialPlayerCount = initialPlayerCounts[currentSlabName] || 0;
+            const playersPerOwner = Math.ceil(initialPlayerCount / owners.length);
+            
+            // Get current players in slab for this owner
+            const currentOwnerSlabPlayers = highestBidder.slabPlayers[currentSlabName] || [];
+            const currentPlayerCount = Array.isArray(currentOwnerSlabPlayers) ? currentOwnerSlabPlayers.length : 0;
+            
+            // Calculate total players owned across all slabs
+            const totalPlayersOwned = Object.values(highestBidder.slabPlayers).reduce((total, players) => {
+                return total + (Array.isArray(players) ? players.length : 0);
+            }, 0);
+            
+            // Calculate total players per owner using initial counts
+            const totalPlayersPerOwner = Math.ceil(
+                auctionSequence.reduce((total, slabName) => {
+                    return total + (initialPlayerCounts[slabName] || 0);
+                }, 0) / owners.length
+            );
+
+            // Log owner's current state
+            console.log(`Owner ${highestBidder.id} State Before Assignment:`, {
+                currentPlayersInSlab: currentPlayerCount,
+                playersInSlab: currentOwnerSlabPlayers,
+                totalPlayersOwned,
+                unitsLeft: highestBidder.unitsLeft,
+                currentPlayer: currentPlayer.PName
+            });
+            
+            console.log(`Fair Share Check Before Assignment for Owner ${highestBidder.id}:`, {
+                slabName: currentSlabName,
+                initialPlayersInSlab: initialPlayerCount,
+                fairShareForSlab: playersPerOwner,
+                totalFairShare: totalPlayersPerOwner,
+                canAssign: currentPlayerCount < playersPerOwner && totalPlayersOwned < totalPlayersPerOwner
             });
 
-            const poolSize = Object.values(playerDataState).flat().length;
-            const totalOwners = owners.length;
+            // Check slab-specific fair share
+            if (currentPlayerCount >= playersPerOwner) {
+                console.log(`Owner ${highestBidder.id} has reached slab fair share limit:`, {
+                    currentPlayers: currentPlayerCount,
+                    fairShare: playersPerOwner,
+                    slabName: currentSlabName
+                });
+                alert(`Owner ${highestBidder.id} has already reached their fair share of ${playersPerOwner} players from ${currentSlabName} slab`);
+                return;
+            }
+
+            // Check total fair share across all slabs
+            if (totalPlayersOwned >= totalPlayersPerOwner) {
+                console.log(`Owner ${highestBidder.id} has reached total fair share limit:`, {
+                    totalOwned: totalPlayersOwned,
+                    totalFairShare: totalPlayersPerOwner,
+                    slabsOwned: Object.entries(highestBidder.slabPlayers).map(([slab, players]) => ({
+                        slab,
+                        count: Array.isArray(players) ? players.length : 0
+                    }))
+                });
+                alert(`Owner ${highestBidder.id} has already reached their total fair share of ${totalPlayersPerOwner} players across all slabs`);
+                return;
+            }
 
             // Update owner state first
             const updatedOwners = owners.map(owner => {
@@ -554,8 +628,9 @@ const Auction = ({ players }) => {
                     }
                     
                     // Add player to slab players if not already present
-                    if (!updatedSlabPlayers[currentSlabName].includes(currentPlayer.PName)) {
-                        updatedSlabPlayers[currentSlabName] = [...updatedSlabPlayers[currentSlabName], currentPlayer.PName];
+                    const playerName = currentPlayer.PName;
+                    if (!updatedSlabPlayers[currentSlabName].includes(playerName)) {
+                        updatedSlabPlayers[currentSlabName] = [...updatedSlabPlayers[currentSlabName], playerName];
                     }
                     
                     // Create new purchased players array
@@ -564,8 +639,8 @@ const Auction = ({ players }) => {
                         : [];
                     
                     // Add player to purchased players if not already present
-                    if (!updatedPurchasedPlayers.includes(currentPlayer.PName)) {
-                        updatedPurchasedPlayers.push(currentPlayer.PName);
+                    if (!updatedPurchasedPlayers.includes(playerName)) {
+                        updatedPurchasedPlayers.push(playerName);
                     }
 
                     const updatedOwner = {
@@ -576,12 +651,20 @@ const Auction = ({ players }) => {
                         currentBid: highestBid
                     };
 
+                    console.log(`Owner ${updatedOwner.id} State After Assignment:`, {
+                        slabPlayers: updatedSlabPlayers[currentSlabName],
+                        purchasedPlayers: updatedPurchasedPlayers,
+                        unitsLeft: updatedOwner.unitsLeft,
+                        currentPlayerCount: updatedSlabPlayers[currentSlabName].length,
+                        fairSharePerSlab: playersPerOwner
+                    });
+
                     // Save the updated owner state to localStorage
                     const ownerState = {
                         id: updatedOwner.id,
                         unitsLeft: updatedOwner.unitsLeft,
-                        purchasedPlayers: updatedOwner.purchasedPlayers,
-                        slabPlayers: updatedOwner.slabPlayers
+                        purchasedPlayers: updatedPurchasedPlayers,
+                        slabPlayers: updatedSlabPlayers
                     };
                     localStorage.setItem(`owner_${updatedOwner.id}_state`, JSON.stringify(ownerState));
 
@@ -599,7 +682,9 @@ const Auction = ({ players }) => {
                     console.log('Updating player data state:', {
                         slabName: currentSlabName,
                         beforeUpdate: updatedData[currentSlabName].find(p => p.PID === currentPlayer.PID),
-                        playerId: currentPlayer.PID
+                        playerId: currentPlayer.PID,
+                        currentSlabPlayers: updatedData[currentSlabName],
+                        actualPlayerCount: updatedData[currentSlabName].filter(p => p !== 0).length
                     });
                     
                     // Create a new array to avoid reference issues
@@ -615,7 +700,9 @@ const Auction = ({ players }) => {
                     console.log('After update:', {
                         slabName: currentSlabName,
                         afterUpdate: updatedData[currentSlabName].find(p => p.PID === currentPlayer.PID),
-                        playerId: currentPlayer.PID
+                        playerId: currentPlayer.PID,
+                        updatedSlabPlayers,
+                        actualPlayerCount: updatedSlabPlayers.filter(p => p !== 0).length
                     });
                 }
                 return updatedData;
@@ -628,7 +715,7 @@ const Auction = ({ players }) => {
                 updatedOwners,
                 slabDetails.basePrice,
                 null,
-                poolSize,
+                Object.values(playerDataState).flat().filter(p => p !== 0).length,
                 unbiddedPlayersQueue,
                 180
             );
@@ -702,27 +789,72 @@ const Auction = ({ players }) => {
         }
     }, [timer, isStarted, isStopped]);
 
-    // Modify handleBidClick to reduce logging
+    // Modify handleBidClick to have clearer logging
     const handleBidClick = (ownerId, bidValue) => {
         if (isStopped) return;
 
         const owner = owners.find((o) => o.id === ownerId);
         if (!owner || !slabDetails) return;
 
-        // Check if owner has already reached their fair share for this slab
+        // Get current state of owner's players
         const slabPlayers = owner.slabPlayers[slabDetails.name] || [];
-        const playersPerOwner = slabDetails.numPlayers / owners.length;
         
-        if (slabPlayers.length >= playersPerOwner) {
+        // Use initial player count for fair share calculation
+        const initialPlayerCount = initialPlayerCounts[slabDetails.name] || 0;
+        const playersPerOwner = Math.ceil(initialPlayerCount / owners.length);
+        
+        // Get the actual count of players in the slab for this owner
+        const currentPlayerCount = Array.isArray(slabPlayers) ? slabPlayers.length : 0;
+        
+        // Calculate total players owned across all slabs
+        const totalPlayersOwned = Object.values(owner.slabPlayers).reduce((total, players) => {
+            return total + (Array.isArray(players) ? players.length : 0);
+        }, 0);
+        
+        // Calculate total players per owner using initial counts
+        const totalPlayersPerOwner = Math.ceil(
+            auctionSequence.reduce((total, slabName) => {
+                return total + (initialPlayerCounts[slabName] || 0);
+            }, 0) / owners.length
+        );
+
+        // Log owner's current state
+        console.log(`Owner ${ownerId} State:`, {
+            currentPlayersInSlab: currentPlayerCount,
+            playersInSlab: slabPlayers,
+            totalPlayersOwned,
+            unitsLeft: owner.unitsLeft
+        });
+        
+        console.log(`Fair Share Check for Owner ${ownerId}:`, {
+            slabName: slabDetails.name,
+            initialPlayersInSlab: initialPlayerCount,
+            fairShareForSlab: playersPerOwner,
+            totalFairShare: totalPlayersPerOwner,
+            canBid: currentPlayerCount < playersPerOwner && totalPlayersOwned < totalPlayersPerOwner
+        });
+
+        // Check slab-specific fair share
+        if (currentPlayerCount >= playersPerOwner) {
+            console.log(`Owner ${ownerId} has reached slab fair share limit:`, {
+                currentPlayers: currentPlayerCount,
+                fairShare: playersPerOwner,
+                slabName: slabDetails.name
+            });
             alert(`Owner ${owner.id} has already reached their fair share of ${playersPerOwner} players from ${slabDetails.name} slab`);
             return;
         }
 
-        // Check if owner has reached their total fair share across all slabs
-        const totalPlayersOwned = Object.values(owner.slabPlayers).reduce((total, players) => total + players.length, 0);
-        const totalPlayersPerOwner = Object.values(slabsState).reduce((total, slab) => total + (slab.numPlayers / owners.length), 0);
-        
+        // Check total fair share across all slabs
         if (totalPlayersOwned >= totalPlayersPerOwner) {
+            console.log(`Owner ${ownerId} has reached total fair share limit:`, {
+                totalOwned: totalPlayersOwned,
+                totalFairShare: totalPlayersPerOwner,
+                slabsOwned: Object.entries(owner.slabPlayers).map(([slab, players]) => ({
+                    slab,
+                    count: Array.isArray(players) ? players.length : 0
+                }))
+            });
             alert(`Owner ${owner.id} has already reached their total fair share of ${totalPlayersPerOwner} players across all slabs`);
             return;
         }
