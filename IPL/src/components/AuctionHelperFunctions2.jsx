@@ -635,24 +635,126 @@ export const renderBidOptions = (owners, currentPlayer, slabDetails, handleBidCl
 
     if (!isEligible) return null;
     
-    const bidOptions = calculateBidOptions(owner, currentPlayer, slabDetails);
-    console.log('Calculated bid options:', {
-      ownerId: owner.id,
-      bidOptions
-    });
+    // Calculate bid options and reserve info
+    const maxPlayersPerSlab = Math.ceil(slabDetails.numPlayers / owners.length);
+    const currentSlabPlayers = owner.slabPlayers[slabDetails.name] || [];
+    const playersLeftToBuy = maxPlayersPerSlab - currentSlabPlayers.length;
+    const requiredAmount = playersLeftToBuy * slabDetails.basePrice;
+    const availableBids = owner.unitsLeft - requiredAmount;
+
+    const bidOptions = [];
+    for (let bid = slabDetails.basePrice; bid <= slabDetails.maxBid; bid += 50) {
+      if (bid <= availableBids) {
+        bidOptions.push(bid);
+      }
+    }
+
+    if (bidOptions.length === 0) {
+      return (
+        <div key={owner.id} className="bid-options">
+          <div className="reserve-info">
+            <div className="total-reserve" data-label="Total Reserve">{requiredAmount}</div>
+            <div className="available-bids" data-label="Available Bids">{availableBids}</div>
+            <div className="remaining-players" data-label="Remaining Players">{playersLeftToBuy}</div>
+          </div>
+          <div className="no-valid-bids">
+            Insufficient funds to maintain required reserve for remaining players
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div key={owner.id} className="bid-options">
-        <h3>{owner.name}</h3>
-        {bidOptions.map((bid) => (
+        <div className="reserve-info">
+          <div className="total-reserve" data-label="Total Reserve">{requiredAmount}</div>
+          <div className="available-bids" data-label="Available Bids">{availableBids}</div>
+          <div className="remaining-players" data-label="Remaining Players">{playersLeftToBuy}</div>
+        </div>
+        <div className="bid-buttons">
+          {bidOptions.map((bid) => (
+            <button
+              key={bid}
+              onClick={() => handleBidClick(owner.id, bid)}
+              className={bid === slabDetails.maxBid ? 'max-bid' : ''}
+            >
+              {bid}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  });
+};
+
+export const renderOwnerCards = (
+  owners,
+  highestBidder,
+  isStopped,
+  renderBidOptions,
+  slabDetails
+) => {
+  // Get pre-auction data
+  const preAuctionData = JSON.parse(localStorage.getItem("PreAuctionData") || "{}");
+
+  return owners.map((owner) => {
+    // Calculate required amount
+    const maxPlayersPerSlab = Math.ceil(slabDetails.numPlayers / owners.length);
+    const currentSlabPlayers = owner.slabPlayers[slabDetails.name] || [];
+    const playersLeftToBuy = maxPlayersPerSlab - currentSlabPlayers.length;
+    const requiredAmount = playersLeftToBuy * slabDetails.basePrice;
+
+    return (
+      <div key={owner.id} className="owner-card">
+        <div className="owner-header">
+          <div className="owner-title">Owner {owner.id}</div>
+          <div className="units-left">{owner.unitsLeft}</div>
+          <div className="required-amount">{requiredAmount}</div>
+        </div>
+        
+        <div className="purchased-players">
+          <h4>Purchased Players:</h4>
+          {owner.purchasedPlayers.length > 0 ? (
+            <div className="players-list">
+              {owner.purchasedPlayers.map((player, index) => {
+                // Find which owner bought this player
+                const buyer = owners.find(o => 
+                  o.purchasedPlayers.includes(player)
+                );
+                const isSold = buyer && buyer.id !== owner.id;
+                
+                // Check if player was purchased in pre-auction
+                const isPreAuctioned = Object.values(preAuctionData).some(
+                  data => data.player.PName === player && data.owner === owner.id
+                );
+                
+                return (
+                  <span 
+                    key={index} 
+                    className={`player-name ${isSold ? 'sold' : ''}`}
+                  >
+                    {isPreAuctioned && <span className="pre-auction-tag">PRE</span>}
+                    {player}
+                    {isSold && <span className="buyer-info"> (Owner {buyer.id})</span>}
+                    {index < owner.purchasedPlayers.length - 1 ? ", " : ""}
+                  </span>
+                );
+              })}
+            </div>
+          ) : (
+            "None"
+          )}
+        </div>
+
+        <div className="bid-section">
+          {renderBidOptions(owner)}
           <button
-            key={bid}
-            onClick={() => handleBidClick(owner.id, bid)}
-            className={bid === slabDetails.maxBid ? 'max-bid' : ''}
+            disabled={(highestBidder && highestBidder.id === owner.id) || isStopped}
+            onClick={() => {}}
           >
-            {bid}
+            Make Bid
           </button>
-        ))}
+        </div>
       </div>
     );
   });

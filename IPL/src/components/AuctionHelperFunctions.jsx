@@ -108,13 +108,13 @@ export const renderPlayerCard = (
       alt="Player"
       style={{ width: "240px", height: "240px", objectFit: "cover" }}
     />
-    <div className="slab">Slab: {slabDetails.name}</div>
+    <div className="player-name">{slabDetails.name}</div>
     <div >
       <div>MIN: {slabDetails.basePrice}</div>
       <div>MAX: {slabDetails.maxBid !== null && slabDetails.maxBid !== undefined ? slabDetails.maxBid : "No max bid"}</div>
     </div>
     <div className="important-text">Player ID: {currentPlayer.PID}</div>
-    <div className="player-name">
+    <div className="slab">
      {currentPlayer.PName}
     </div>
     <div>Age: {currentPlayer.PAge}</div>

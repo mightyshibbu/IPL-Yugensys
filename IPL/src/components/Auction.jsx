@@ -741,7 +741,8 @@ const Auction = ({ players }) => {
                             owners,
                             highestBidder,
                             isStopped,
-                            renderBidOptionsForOwner
+                            renderBidOptionsForOwner,
+                            slabDetails
                         )}
                     </div>
                 </div>
