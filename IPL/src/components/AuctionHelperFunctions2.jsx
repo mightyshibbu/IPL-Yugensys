@@ -258,43 +258,102 @@ export const updateOwnerBid = (ownerId, bidValue, owners, setOwners) => {
   ));
 };
 
-export const ifFullyFilled = (ownerId, owners, poolSize, slabDetails) => {
-    const owner = owners.find((o) => o.id === ownerId);
-    if (!owner) return false; // Owner not found, can't bid
+// Add static Set to track shown alerts across function calls
+const shownAlerts = new Set();
 
-    // Get initial player count from localStorage
+export const ifFullyFilled = (ownerId, owners, poolSize, slabDetails, isUnbiddedPlayer = false, playerDataState = {}, isBidCheck = false) => {
+    // Get the owner
+    const owner = owners.find(o => o.id === ownerId);
+    if (!owner) {
+        if (isBidCheck) console.log('DEBUG: Owner not found for ID:', ownerId);
+        return true;
+    }
+
+    // Get current players in slab for this owner
+    const currentSlabPlayers = owner.slabPlayers[slabDetails.name] || [];
+    const currentPlayerCount = Array.isArray(currentSlabPlayers) ? currentSlabPlayers.length : 0;
+
+    // Calculate total players owned across all slabs
+    const totalPlayersOwned = Object.values(owner.slabPlayers).reduce((total, players) => {
+        return total + (Array.isArray(players) ? players.length : 0);
+    }, 0);
+
+    // Get initial player counts from localStorage
     const initialPlayerCountsRaw = localStorage.getItem("initialPlayerCounts");
     const initialPlayerCounts = initialPlayerCountsRaw ? JSON.parse(initialPlayerCountsRaw) : {};
-    const initialPlayersInSlab = initialPlayerCounts[slabDetails.name] || 0;
 
-    const totalOwners = owners.length;
-    const maxPlayersPerOwner = Math.ceil(initialPlayersInSlab / totalOwners); // Use initial player count
-    const currentSlabPlayers = owner.slabPlayers[slabDetails.name] || [];
-    
-    // Check if owner has reached their limit for this slab
-    if (currentSlabPlayers.length >= maxPlayersPerOwner) {
-        console.log(`Owner ${ownerId} has reached slab limit:`, {
-            currentPlayers: currentSlabPlayers.length,
-            maxPlayers: maxPlayersPerOwner,
-            initialPlayersInSlab,
-            slabName: slabDetails.name
-        });
-        return false; // Owner has reached slab limit, can't bid
+    // Calculate total initial players across all slabs
+    const totalInitialPlayers = Object.values(initialPlayerCounts).reduce((sum, count) => sum + count, 0);
+    const totalPlayersPerOwner = Math.ceil(totalInitialPlayers / owners.length);
+
+    if (isBidCheck) {
+        console.log('DEBUG: Fair Share Calculation for Owner', ownerId);
+        console.log('DEBUG: Current Slab:', slabDetails.name);
+        console.log('DEBUG: Players in current slab:', currentPlayerCount);
+        console.log('DEBUG: Total players owned across all slabs:', totalPlayersOwned);
+        console.log('DEBUG: Initial player count for this slab:', initialPlayerCounts[slabDetails.name] || 0);
+        console.log('DEBUG: Total initial players across all slabs:', totalInitialPlayers);
+        console.log('DEBUG: Total players per owner:', totalPlayersPerOwner);
+        console.log('DEBUG: Number of owners:', owners.length);
+        console.log('DEBUG: Is unbidded player phase:', isUnbiddedPlayer);
     }
 
-    // Check if owner has reached their total player limit
-    const totalPurchasedPlayers = owner.purchasedPlayers.length;
-    const maxTotalPlayers = Math.ceil(poolSize / totalOwners);
-    
-    if (totalPurchasedPlayers >= maxTotalPlayers) {
-        console.log(`Owner ${ownerId} has reached total limit:`, {
-            totalPurchased: totalPurchasedPlayers,
-            maxTotal: maxTotalPlayers
-        });
-        return false; // Owner has reached total limit, can't bid
+    // For unbidded players, we only check total fair share
+    if (isUnbiddedPlayer) {
+        if (isBidCheck) {
+            console.log('DEBUG: Checking unbidded player fair share');
+            console.log('DEBUG: Owner', ownerId, 'has', totalPlayersOwned, 'players out of', totalPlayersPerOwner, 'allowed');
+        }
+        
+        // For unbidded players, use the same fair share as normal sequence
+        const initialPlayerCount = initialPlayerCounts[slabDetails.name] || 0;
+        const maxPlayersPerOwner = Math.ceil(initialPlayerCount / owners.length);
+        
+        // Check slab-specific fair share first
+        if (currentPlayerCount >= maxPlayersPerOwner) {
+            if (isBidCheck) console.log('DEBUG: Owner', ownerId, 'has reached slab-specific fair share limit');
+            return true;
+        }
+        
+        // Then check total fair share
+        if (totalPlayersOwned >= totalPlayersPerOwner) {
+            if (isBidCheck) console.log('DEBUG: Owner', ownerId, 'has reached total fair share limit');
+            return true;
+        }
+        
+        if (isBidCheck) console.log('DEBUG: Owner', ownerId, 'is eligible to bid in unbidded phase');
+        return false;
     }
 
-    return true; // Owner is eligible to bid
+    // For normal sequence, check both slab-specific and total fair share
+    const initialPlayerCount = initialPlayerCounts[slabDetails.name] || 0;
+    const maxPlayersPerOwner = Math.ceil(initialPlayerCount / owners.length);
+
+    if (isBidCheck) {
+        console.log('DEBUG: Normal sequence fair share check');
+        console.log('DEBUG: Slab-specific fair share:', maxPlayersPerOwner, 'players per owner');
+        console.log('DEBUG: Owner', ownerId, 'has', currentPlayerCount, 'players in this slab');
+    }
+
+    // Check slab-specific fair share
+    if (currentPlayerCount >= maxPlayersPerOwner) {
+        if (isBidCheck) console.log('DEBUG: Owner', ownerId, 'has reached slab-specific fair share limit');
+        return true;
+    }
+
+    // Check total fair share
+    if (totalPlayersOwned >= totalPlayersPerOwner) {
+        if (isBidCheck) console.log('DEBUG: Owner', ownerId, 'has reached total fair share limit');
+        return true;
+    }
+
+    if (isBidCheck) console.log('DEBUG: Owner', ownerId, 'is eligible to bid');
+    return false;
+};
+
+// Add function to clear alerts when moving to next player
+export const clearAlerts = () => {
+    shownAlerts.clear();
 };
 
 export const updatePlayerLists = (

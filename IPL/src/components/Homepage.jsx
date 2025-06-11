@@ -71,6 +71,9 @@ const HomePage = () => {
   const handleBeginAuction = () => {
     console.log("Beginning Auction");
     
+    // Clear any existing auction data
+    localStorage.removeItem("auctionData");
+    
     // Check for all required configurations
     const requiredConfigs = {
       "AuctionData": "Auction configuration (timer, owners, pool size, units)",
