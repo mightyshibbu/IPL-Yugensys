@@ -1,18 +1,31 @@
-/* Main container styling */
-.auction-container {
-  display: flex;
-  /* flex-direction: column; Changed to column layout */
-  padding: 20px;
-  font-family: 'Roboto', sans-serif;
-  background: linear-gradient(135deg, #1a2a3a, #2b3a4a);
-  color: #ffffff;
-  width: 97vw;
-  height: auto; /* Set height to auto to allow dynamic growth */
-  box-sizing: border-box;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding-right: 320px; /* Make space for the panel */
+/* Main content styling */
+.main-content {
+    flex: 1;
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    padding-bottom: 100px; /* Add padding for control buttons */
+    background: linear-gradient(135deg, #1a2a3a, #2b3a4a);
+    width: calc(100vw - 320px);
+    min-height: 100vh;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+    color: #ffffff;
+    position: relative;
+    left: 0;
+    right: 320px;
+    z-index: 1;
 }
+
+/* Auction wrapper */
+.auction-wrapper {
+    display: flex;
+    width: 100vw;
+    position: relative;
+    min-height: 100vh;
+    background-color: #1a2a3a;
+}
+
 /* Timer styling */
 .timer {
   font-size: 24px; /* Adjust size as needed */
@@ -105,6 +118,7 @@
 
 /* Bid information section */
 .bid-info {
+  width: 1500px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -171,8 +185,8 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 15px;
-  margin: 10px;
-  min-width: 300px;
+  min-width: 280px; /* Slightly reduced from 300px */
+  max-width: calc(50% - 20px); /* Take up half the container width minus gap */
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -231,9 +245,15 @@
   background-color: #e8f4ff;
   padding: 3px 8px;
   border-radius: 4px;
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  text-align: center;
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .player-name.sold {
@@ -350,14 +370,38 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 30px; /* Adjust this as needed */
-  margin-top: 39px;
+  gap: 30px;
+  position: fixed; /* Change to fixed positioning */
+  bottom: 20px; /* Position from bottom */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Center horizontally */
+  z-index: 100;
+  background-color: rgba(26, 42, 58, 0.95); /* Semi-transparent background */
+  padding: 15px 30px;
+  border-radius: 12px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px); /* Add blur effect for better visibility */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: auto; /* Let it size based on content */
+  min-width: 600px; /* Minimum width to ensure buttons don't get too cramped */
 }
 
 .control-buttons button {
   background-color: #b8d5f4;
   width: 120px;
   font-size: large;
+  position: relative;
+  z-index: 101;
+  transition: all 0.3s ease; /* Add smooth transition for hover effects */
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+}
+
+.control-buttons button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: #a8c5e4;
 }
 
 .upcoming-slab-notification {
@@ -398,6 +442,8 @@
     right: 0;
     top: 0;
     color: #ffffff;
+    z-index: 50; /* Lower z-index than control buttons but higher than auction container */
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2); /* Add shadow to visually separate the panel */
 }
 
 .upcoming-players-panel h3 {
@@ -469,15 +515,6 @@
     font-weight: bold;
 }
 
-/* Adjust main content to accommodate the panel */
-.main-content {
-    flex: 1;
-    display: flex;
-    gap: 20px;
-    padding: 20px;
-    background-color: #1a2a3a;
-}
-
 /* Reserve and Available Bids Section */
 .reserve-bids-info {
   display: flex;
@@ -517,4 +554,22 @@
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Content container for bid info and owner cards */
+.content-container {
+    flex: 1;
+    margin-left: 20px;
+    width: calc(100% - 340px); /* Account for player card width (320px) + gap (20px) */
+    max-width: calc(100vw - 660px); /* Account for upcoming players panel (300px) + player card (320px) + gaps (40px) */
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* Owner cards container */
+.owner-cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 20px;
+    width: 100%;
 }

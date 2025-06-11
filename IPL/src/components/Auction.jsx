@@ -711,32 +711,32 @@ const Auction = ({ players }) => {
     };
 
     return (
-        <>
-            <div className="auction-container">
-                {upcomingSlab && (
-                    <div className="upcoming-slab-notification">
-                        <h2>Upcoming Slab: {upcomingSlab}</h2>
-                    </div>
+        <div className="auction-wrapper">
+            {upcomingSlab && (
+                <div className="upcoming-slab-notification">
+                    <h2>Upcoming Slab: {upcomingSlab}</h2>
+                </div>
+            )}
+            <div className="main-content">
+                {renderPlayerCard(
+                    currentPlayer,
+                    (index) => getPlayerImage(currentPlayer, img10, PLAYER_IMAGES, index),
+                    currentSlabIndex,
+                    slabDetails,
+                    numberOfPlayersLeft,
+                    JSON.parse(localStorage.getItem("PreAuctionData") || "{}")
                 )}
-                <div className="main-content">
-                    {renderPlayerCard(
-                        currentPlayer,
-                        (index) => getPlayerImage(currentPlayer, img10, PLAYER_IMAGES, index),
-                        currentSlabIndex,
-                        slabDetails,
-                        numberOfPlayersLeft,
-                        JSON.parse(localStorage.getItem("PreAuctionData") || "{}")
+                <div className="content-container">
+                    {renderBidInfo(
+                        highestBid,
+                        highestBidder,
+                        Object.values(playerDataState).flat().length,
+                        owners.length,
+                        slabsState.length,
+                        timer,
+                        isStarted
                     )}
-                    <div style={{ flexGrow: 1, marginLeft: "20px" }}>
-                        {renderBidInfo(
-                            highestBid,
-                            highestBidder,
-                            Object.values(playerDataState).flat().length,
-                            owners.length,
-                            slabsState.length,
-                            timer,
-                            isStarted
-                        )}
+                    <div className="owner-cards-container">
                         {renderOwnerCards(
                             owners,
                             highestBidder,
@@ -745,13 +745,13 @@ const Auction = ({ players }) => {
                         )}
                     </div>
                 </div>
-                <UpcomingPlayersPanel 
-                    playerDataState={playerDataState}
-                    currentPlayer={currentPlayer}
-                    auctionSequence={auctionSequence}
-                    currentSlabIndex={currentSlabIndex}
-                />
             </div>
+            <UpcomingPlayersPanel 
+                playerDataState={playerDataState}
+                currentPlayer={currentPlayer}
+                auctionSequence={auctionSequence}
+                currentSlabIndex={currentSlabIndex}
+            />
             {renderControlButtons(
                 () => handleStart(setIsStarted, setIsStopped, () => saveAuctionState(
                     playerDataState,
@@ -774,7 +774,7 @@ const Auction = ({ players }) => {
                 ),
                 handleSkipTimer
             )}
-        </>
+        </div>
     );
 };
 
