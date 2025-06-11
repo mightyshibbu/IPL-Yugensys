@@ -555,10 +555,37 @@ const Auction = ({ players }) => {
 
     // Modify handlePlayerAssignment to use initial player counts and clearer logging
     const handlePlayerAssignment = async () => {
+        // Debug Step 1: Log initial state
+        console.log('DEBUG: Starting handlePlayerAssignment', {
+            currentPlayer: currentPlayer.PName,
+            currentSlab: currentSlabName,
+            isSequenceComplete,
+            highestBidder: highestBidder?.id,
+            highestBid
+        });
+
         if (highestBidder) {
-            // Use initial player count for fair share calculation
-            const initialPlayerCount = initialPlayerCounts[currentSlabName] || 0;
-            const playersPerOwner = Math.ceil(initialPlayerCount / owners.length);
+            // Debug Step 2: Log owner's current state before fair share calculation
+            console.log('DEBUG: Owner State Before Fair Share Check', {
+                ownerId: highestBidder.id,
+                slabPlayers: highestBidder.slabPlayers,
+                unitsLeft: highestBidder.unitsLeft,
+                currentSlab: currentSlabName
+            });
+
+            // For unbidded players, we need to check the actual current state
+            const isUnbiddedPlayer = isSequenceComplete;
+            
+            // Debug Step 3: Log unbidded player status
+            console.log('DEBUG: Unbidded Player Status', {
+                isUnbiddedPlayer,
+                currentSlab: currentSlabName,
+                remainingPlayersInSlab: playerDataState[currentSlabName]?.filter(p => p !== 0).length,
+                allSlabsState: Object.entries(playerDataState).map(([slab, players]) => ({
+                    slab,
+                    remainingPlayers: players.filter(p => p !== 0).length
+                }))
+            });
             
             // Get current players in slab for this owner
             const currentOwnerSlabPlayers = highestBidder.slabPlayers[currentSlabName] || [];
@@ -568,6 +595,45 @@ const Auction = ({ players }) => {
             const totalPlayersOwned = Object.values(highestBidder.slabPlayers).reduce((total, players) => {
                 return total + (Array.isArray(players) ? players.length : 0);
             }, 0);
+
+            // Debug Step 4: Log player counts
+            console.log('DEBUG: Player Counts', {
+                ownerId: highestBidder.id,
+                currentPlayerCount,
+                totalPlayersOwned,
+                currentOwnerSlabPlayers,
+                allSlabPlayers: highestBidder.slabPlayers
+            });
+
+            // For unbidded players, we need to check the actual current state of the slab
+            let playersPerOwner;
+            if (isUnbiddedPlayer) {
+                // For unbidded players, calculate fair share based on remaining players in the slab
+                const remainingPlayersInSlab = playerDataState[currentSlabName]?.filter(p => p !== 0).length || 0;
+                playersPerOwner = Math.ceil(remainingPlayersInSlab / owners.length);
+                
+                // Debug Step 5: Log unbidded player fair share calculation
+                console.log('DEBUG: Unbidded Player Fair Share Calculation', {
+                    remainingPlayersInSlab,
+                    ownersCount: owners.length,
+                    calculatedFairShare: playersPerOwner,
+                    currentPlayerCount,
+                    slabName: currentSlabName
+                });
+            } else {
+                // For normal sequence, use initial player count
+                const initialPlayerCount = initialPlayerCounts[currentSlabName] || 0;
+                playersPerOwner = Math.ceil(initialPlayerCount / owners.length);
+                
+                // Debug Step 6: Log normal sequence fair share calculation
+                console.log('DEBUG: Normal Sequence Fair Share Calculation', {
+                    initialPlayerCount,
+                    ownersCount: owners.length,
+                    calculatedFairShare: playersPerOwner,
+                    currentPlayerCount,
+                    slabName: currentSlabName
+                });
+            }
             
             // Calculate total players per owner using initial counts
             const totalPlayersPerOwner = Math.ceil(
@@ -576,47 +642,40 @@ const Auction = ({ players }) => {
                 }, 0) / owners.length
             );
 
-            // Log owner's current state
-            console.log(`Owner ${highestBidder.id} State Before Assignment:`, {
-                currentPlayersInSlab: currentPlayerCount,
-                playersInSlab: currentOwnerSlabPlayers,
+            // Debug Step 7: Log final fair share state
+            console.log('DEBUG: Final Fair Share State', {
+                ownerId: highestBidder.id,
+                isUnbiddedPlayer,
+                currentSlab: currentSlabName,
+                playersPerOwner,
+                currentPlayerCount,
+                totalPlayersPerOwner,
                 totalPlayersOwned,
-                unitsLeft: highestBidder.unitsLeft,
-                currentPlayer: currentPlayer.PName
-            });
-            
-            console.log(`Fair Share Check Before Assignment for Owner ${highestBidder.id}:`, {
-                slabName: currentSlabName,
-                initialPlayersInSlab: initialPlayerCount,
-                fairShareForSlab: playersPerOwner,
-                totalFairShare: totalPlayersPerOwner,
-                canAssign: currentPlayerCount < playersPerOwner && totalPlayersOwned < totalPlayersPerOwner
+                canAssign: currentPlayerCount < playersPerOwner
             });
 
             // Check slab-specific fair share
             if (currentPlayerCount >= playersPerOwner) {
-                console.log(`Owner ${highestBidder.id} has reached slab fair share limit:`, {
+                // Debug Step 8: Log fair share limit reached
+                console.log('DEBUG: Fair Share Limit Reached', {
+                    ownerId: highestBidder.id,
                     currentPlayers: currentPlayerCount,
                     fairShare: playersPerOwner,
-                    slabName: currentSlabName
+                    slabName: currentSlabName,
+                    isUnbiddedPlayer,
+                    remainingPlayersInSlab: isUnbiddedPlayer ? playerDataState[currentSlabName]?.filter(p => p !== 0).length : null
                 });
                 alert(`Owner ${highestBidder.id} has already reached their fair share of ${playersPerOwner} players from ${currentSlabName} slab`);
                 return;
             }
 
-            // Check total fair share across all slabs
-            if (totalPlayersOwned >= totalPlayersPerOwner) {
-                console.log(`Owner ${highestBidder.id} has reached total fair share limit:`, {
-                    totalOwned: totalPlayersOwned,
-                    totalFairShare: totalPlayersPerOwner,
-                    slabsOwned: Object.entries(highestBidder.slabPlayers).map(([slab, players]) => ({
-                        slab,
-                        count: Array.isArray(players) ? players.length : 0
-                    }))
-                });
-                alert(`Owner ${highestBidder.id} has already reached their total fair share of ${totalPlayersPerOwner} players across all slabs`);
-                return;
-            }
+            // Debug Step 9: Log proceeding with assignment
+            console.log('DEBUG: Proceeding with Player Assignment', {
+                ownerId: highestBidder.id,
+                currentPlayer: currentPlayer.PName,
+                currentSlab: currentSlabName,
+                bidAmount: highestBid
+            });
 
             // Update owner state first
             const updatedOwners = owners.map(owner => {

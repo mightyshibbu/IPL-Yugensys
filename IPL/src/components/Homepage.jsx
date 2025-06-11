@@ -163,7 +163,7 @@ const HomePage = () => {
       </div>
       <header className="auction-header" style={{marginBottom:"30px"}}>
         <h1>IPL LIVE AUCTION</h1>
-        <h1>v4.1</h1>
+        <h1>v6.1</h1>
       </header>
       <div className="button-container">
         <button className="auction-btn" onClick={handleConfig}>Configure</button>

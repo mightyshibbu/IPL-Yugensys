@@ -232,7 +232,7 @@ export const renderPlayerCard = (
     </div>
     <div className="important-text">Player ID: {currentPlayer.PID}</div>
     <div className="player-name">
-      Name: {currentPlayer.PName}
+     {currentPlayer.PName}
     </div>
     <div>Age: {currentPlayer.PAge}</div>
     <div>Height: {currentPlayer.PHeight}</div>
@@ -274,15 +274,17 @@ export const renderOwnerCards = (
 
   return owners.map((owner) => (
     <div key={owner.id} className="owner-card">
-      {owner.id == 1 ? (
-        <div>Owner {owner.id}</div>
-      ) : (
-        <div>Owner {owner.id}</div>
-      )}
-      <div>Units Left: {owner.unitsLeft}</div>
-      {renderBidOptions(owner)}
+      <div className="owner-header">
+        {owner.id == 1 ? (
+          <div>Owner {owner.id}   </div>
+        ) : (
+          <div>Owner {owner.id}</div>
+        )}
+        <div>Units Left: {owner.unitsLeft}</div>
+      </div>
+      
       <div className="purchased-players">
-        Purchased Players:{" "}
+        <h4>Purchased Players:</h4>
         {owner.purchasedPlayers.length > 0 ? (
           <div className="players-list">
             {owner.purchasedPlayers.map((player, index) => {
@@ -314,12 +316,16 @@ export const renderOwnerCards = (
           "None"
         )}
       </div>
-      <button
-        disabled={(highestBidder && highestBidder.id === owner.id) || isStopped}
-        onClick={() => {}}
-      >
-        Make Bid
-      </button>
+
+      <div className="bid-section">
+        {renderBidOptions(owner)}
+        <button
+          disabled={(highestBidder && highestBidder.id === owner.id) || isStopped}
+          onClick={() => {}}
+        >
+          Make Bid
+        </button>
+      </div>
     </div>
   ));
 };
